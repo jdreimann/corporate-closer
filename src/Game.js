@@ -115,6 +115,13 @@ class Game {
     checkVictoryCondition() {
         // Victory when player reaches the end of the level (after 10PM)
         if (this.player.x > this.level.width - 100) {
+            // Check if boss was defeated for additional bonus
+            const boss = this.level.enemies.find(e => e instanceof CriticalStakeholder);
+            if (boss && !boss.active) {
+                // Boss was defeated - add massive bonus
+                this.addScore(1000000); // Additional 1 million bonus for defeating boss
+                console.log('Boss defeated bonus: +1,000,000');
+            }
             this.gameOver(true);
         }
     }

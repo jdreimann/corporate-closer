@@ -7,7 +7,8 @@ class Enemy {
         this.maxHealth = 1;
         this.animationTime = 0;
         this.damageFlash = 0;
-        this.scoreValue = 10000;
+        // Randomize score value between 8000-12000, rounded to nearest thousand
+        this.scoreValue = Math.round((8000 + Math.random() * 4000) / 1000) * 1000;
     }
 
     update(deltaTime, level, player, engine) {
@@ -212,7 +213,8 @@ class CriticalStakeholder extends Enemy {
         this.speed = 40;
         this.direction = 1;
         this.contactDamage = 30;
-        this.scoreValue = 500;
+        // Randomize boss score between 500k-5M, rounded to nearest thousand
+        this.scoreValue = Math.round((500000 + Math.random() * 4500000) / 1000) * 1000;
         
         // Attack patterns
         this.attackTimer = 0;
