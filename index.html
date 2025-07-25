@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Corporate Closer - Platform Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1>Corporate Closer</h1>
+            <div class="game-stats">
+                <div class="stat">
+                    <span class="label">Health:</span>
+                    <div class="health-bar">
+                        <div class="health-fill" id="healthBar"></div>
+                    </div>
+                </div>
+                <div class="stat">
+                    <span class="label">Score:</span>
+                    <span id="score">0</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Emails:</span>
+                    <span id="emailAmmo">∞</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Calls:</span>
+                    <span id="callAmmo">10</span>
+                </div>
+            </div>
+        </div>
+        
+        <canvas id="gameCanvas" width="1200" height="600"></canvas>
+        
+        <div class="controls-info">
+            <div class="control-group">
+                <h3>Controls</h3>
+                <div class="controls-grid">
+                    <div class="control">
+                        <span class="key">A/D or ←/→</span>
+                        <span class="action">Move</span>
+                    </div>
+                    <div class="control">
+                        <span class="key">W or ↑</span>
+                        <span class="action">Jump</span>
+                    </div>
+                    <div class="control">
+                        <span class="key">Space</span>
+                        <span class="action">Email Shot</span>
+                    </div>
+                    <div class="control">
+                        <span class="key">Shift</span>
+                        <span class="action">Phone Call</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="gameOverScreen" class="game-over hidden">
+            <div class="game-over-content">
+                <h2 id="gameOverTitle">Deal Closed!</h2>
+                <p id="gameOverMessage">Congratulations! You've successfully navigated the corporate sales process.</p>
+                <p>Final Score: <span id="finalScore">0</span></p>
+                <button onclick="game.restart()">Start New Quarter</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="src/GameEngine.js"></script>
+    <script src="src/Player.js"></script>
+    <script src="src/Projectile.js"></script>
+    <script src="src/Enemy.js"></script>
+    <script src="src/Level.js"></script>
+    <script src="src/AudioManager.js"></script>
+    <script src="src/Game.js"></script>
+</body>
+</html>
