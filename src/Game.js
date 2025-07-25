@@ -11,6 +11,7 @@ class Game {
         
         this.score = 0;
         this.gameState = 'playing'; // 'playing', 'gameOver', 'victory'
+        this.bossFirstSeen = false;
         
         this.setupUI();
         this.start();
@@ -171,6 +172,9 @@ class Game {
         this.engine.camera.x = 0;
         this.engine.camera.targetX = 0;
         
+        // Reset boss visibility tracking
+        this.bossFirstSeen = false;
+        
         // Hide game over screen
         this.gameOverScreen.classList.add('hidden');
         
@@ -204,31 +208,43 @@ class Game {
         const ctx = this.engine.ctx;
         const canvas = this.engine.canvas;
         
-        // Boss health bar (if boss is active)
+        // Boss health bar (if boss is active and in view)
         const boss = this.level.enemies.find(e => e instanceof CriticalStakeholder && e.active);
         if (boss) {
-            const barWidth = 400;
-            const barHeight = 20;
-            const barX = (canvas.width - barWidth) / 2;
-            const barY = 30;
+            // Check if boss is in camera view
+            const bossInView = boss.x >= this.engine.camera.x - 100 && 
+                              boss.x <= this.engine.camera.x + this.engine.canvas.width + 100;
             
-            // Background
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-            ctx.fillRect(barX - 10, barY - 10, barWidth + 20, barHeight + 20);
+            // Mark boss as seen when it first comes into view
+            if (bossInView && !this.bossFirstSeen) {
+                this.bossFirstSeen = true;
+            }
             
-            // Health bar
-            ctx.fillStyle = '#374151';
-            ctx.fillRect(barX, barY, barWidth, barHeight);
-            
-            const healthPercent = boss.health / boss.maxHealth;
-            ctx.fillStyle = '#ef4444';
-            ctx.fillRect(barX, barY, barWidth * healthPercent, barHeight);
-            
-            // Boss name
-            ctx.fillStyle = '#fff';
-            ctx.font = '16px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('Critical Stakeholder', canvas.width / 2, barY + 15);
+            // Only show health bar if boss has been seen
+            if (this.bossFirstSeen) {
+                const barWidth = 400;
+                const barHeight = 20;
+                const barX = (canvas.width - barWidth) / 2;
+                const barY = 30;
+                
+                // Background
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fillRect(barX - 10, barY - 10, barWidth + 20, barHeight + 20);
+                
+                // Health bar
+                ctx.fillStyle = '#374151';
+                ctx.fillRect(barX, barY, barWidth, barHeight);
+                
+                const healthPercent = boss.health / boss.maxHealth;
+                ctx.fillStyle = '#ef4444';
+                ctx.fillRect(barX, barY, barWidth * healthPercent, barHeight);
+                
+                // Boss name
+                ctx.fillStyle = '#fff';
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Critical Stakeholder', canvas.width / 2, barY + 15);
+            }
         }
         
         // Performance indicator

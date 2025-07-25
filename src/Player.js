@@ -25,6 +25,10 @@ class Player {
         this.isMoving = false;
         this.isJumping = false;
         
+        // Double jump system
+        this.jumpsRemaining = 2;
+        this.maxJumps = 2;
+        
         // Visual effects
         this.damageFlash = 0;
         this.screenShake = 0;
@@ -63,8 +67,9 @@ class Player {
         }
 
         // Jumping
-        if (jump && this.onGround) {
+        if (jump && this.jumpsRemaining > 0) {
             this.velocityY = -this.jumpPower;
+            this.jumpsRemaining--;
             this.onGround = false;
             this.isJumping = true;
         }
@@ -101,6 +106,7 @@ class Player {
                     this.velocityY = 0;
                     this.onGround = true;
                     this.isJumping = false;
+                    this.jumpsRemaining = this.maxJumps; // Reset jumps when landing on platform
                 }
             }
         }
@@ -111,6 +117,7 @@ class Player {
             this.velocityY = 0;
             this.onGround = true;
             this.isJumping = false;
+            this.jumpsRemaining = this.maxJumps; // Reset jumps when landing
         }
     }
 

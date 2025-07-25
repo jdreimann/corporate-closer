@@ -8,6 +8,8 @@ class Level {
         this.platforms = [];
         this.enemies = [];
         this.collectibles = [];
+        this.windowStates = new Map(); // Store window states
+        this.lastWindowUpdate = 0; // Track last window state update
         
         this.generateLevel();
     }
@@ -139,6 +141,13 @@ class Level {
             return false;
         });
         
+        // Update window states every 3-8 seconds
+        const currentTime = Date.now();
+        if (currentTime - this.lastWindowUpdate > 3000 + Math.random() * 5000) {
+            this.updateWindowStates();
+            this.lastWindowUpdate = currentTime;
+        }
+        
         // Check collectible collisions
         for (const collectible of this.collectibles) {
             if (!collectible.collected && 
@@ -199,6 +208,39 @@ class Level {
         this.drawLevelMarkers(engine);
     }
 
+    updateWindowStates() {
+        // Corporate buildings in background
+        const buildings = [
+            { x: 200, width: 80, height: 200 },
+            { x: 400, width: 120, height: 250 },
+            { x: 800, width: 100, height: 180 },
+            { x: 1200, width: 90, height: 220 },
+            { x: 1600, width: 110, height: 190 },
+            { x: 2000, width: 130, height: 240 },
+            { x: 2500, width: 95, height: 210 },
+            { x: 3000, width: 140, height: 260 },
+            { x: 3500, width: 120, height: 230 },
+            { x: 4000, width: 150, height: 280 }
+        ];
+        
+        for (const building of buildings) {
+            const buildingY = this.groundY - building.height;
+            
+            // Update window states for this building
+            for (let floor = 0; floor < Math.floor(building.height / 25); floor++) {
+                for (let window = 0; window < Math.floor(building.width / 20); window++) {
+                    const windowKey = `${building.x}-${floor}-${window}`;
+                    
+                    // Only update if window state doesn't exist or randomly decide to change
+                    if (!this.windowStates.has(windowKey) || Math.random() > 0.7) {
+                        const isLit = Math.random() > 0.3;
+                        this.windowStates.set(windowKey, isLit);
+                    }
+                }
+            }
+        }
+    }
+
     drawBackground(engine) {
         // Corporate buildings in background
         const buildings = [
@@ -223,7 +265,8 @@ class Level {
                 for (let window = 0; window < Math.floor(building.width / 20); window++) {
                     const windowX = building.x + 5 + window * 20;
                     const windowY = buildingY + 5 + floor * 25;
-                    const isLit = Math.random() > 0.3;
+                    const windowKey = `${building.x}-${floor}-${window}`;
+                    const isLit = this.windowStates.get(windowKey) || false;
                     engine.drawRect(windowX, windowY, 10, 15, isLit ? '#fbbf24' : '#374151');
                 }
             }
@@ -285,10 +328,7 @@ class Level {
                            '12px Arial', '#94a3b8');
         }
         
-        // Boss area indicator
-        if (engine.camera.x > 3600) {
-            engine.drawText('BOSS AREA', 4000, 100, '24px Arial', '#ef4444', 'center');
-        }
+
     }
 
     getActiveEnemies() {
