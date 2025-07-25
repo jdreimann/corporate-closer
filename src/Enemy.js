@@ -7,7 +7,7 @@ class Enemy {
         this.maxHealth = 1;
         this.animationTime = 0;
         this.damageFlash = 0;
-        this.scoreValue = 100;
+        this.scoreValue = 10000;
     }
 
     update(deltaTime, level, player, engine) {

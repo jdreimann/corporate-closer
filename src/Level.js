@@ -118,14 +118,14 @@ class Level {
             type: 'bonus', 
             x: 2220, y: 150, 
             width: 25, height: 25, 
-            value: 500, 
+            value: 50000, 
             collected: false 
         });
         this.collectibles.push({ 
             type: 'bonus', 
             x: 3420, y: 320, 
             width: 25, height: 25, 
-            value: 1000, 
+            value: 100000, 
             collected: false 
         });
     }
@@ -206,11 +206,11 @@ class Level {
     }
     
     spawnCalendarEnemy(engine) {
-        // Spawn position: right edge of screen + some offset
-        const spawnX = engine.camera.x + engine.canvas.width + 100;
+        // Spawn position: just out of view to the right of the camera
+        const spawnX = engine.camera.x + engine.canvas.width + 50;
         
-        // Random elevation across bottom 2/3rds of game area (200-520)
-        const minY = 200;
+        // Random elevation across bottom 2/3rds of game area (250-520) - increased minimum
+        const minY = 250;
         const maxY = 520;
         const spawnY = minY + Math.random() * (maxY - minY);
         
