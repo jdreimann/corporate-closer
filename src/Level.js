@@ -63,8 +63,10 @@ class Level {
         this.enemies.push(new FinanceReview(2700, this.groundY - 40));
         this.enemies.push(new FinanceReview(3200, this.groundY - 40));
         
-        // Critical Stakeholder (Boss)
-        this.enemies.push(new CriticalStakeholder(4000, this.groundY - 80));
+        // Critical Stakeholder (Boss) - appears after 8PM marker
+        // 8PM is at 75% of the level (6AM to 10PM = 16 hours, 8PM is 14 hours in = 87.5%)
+        const eightPMPosition = 4800 * 0.875; // 4200
+        this.enemies.push(new CriticalStakeholder(eightPMPosition + 200, this.groundY - 80));
     }
 
     createCollectibles() {
@@ -131,11 +133,11 @@ class Level {
         });
     }
 
-    update(deltaTime, player) {
+    update(deltaTime, player, engine) {
         // Update enemies
         this.enemies = this.enemies.filter(enemy => {
             if (enemy.active) {
-                enemy.update(deltaTime, this, player);
+                enemy.update(deltaTime, this, player, engine);
                 return true;
             }
             return false;
@@ -319,16 +321,67 @@ class Level {
     }
 
     drawLevelMarkers(engine) {
-        // Draw distance markers
-        const markerSpacing = 800;
-        for (let i = 1; i <= 5; i++) {
-            const x = i * markerSpacing;
+        // Draw time markers throughout the day
+        const totalLevelWidth = 4800; // Total level width
+        const startTime = 6; // 6 AM
+        const endTime = 22; // 10 PM (22:00)
+        const totalHours = endTime - startTime;
+        
+        // Create time markers every 2 hours
+        for (let hour = startTime; hour <= endTime; hour += 2) {
+            // Calculate position based on time progression
+            const timeProgress = (hour - startTime) / totalHours;
+            const x = timeProgress * totalLevelWidth;
+            
+            // Skip if marker is off-screen
+            if (x < engine.camera.x - 100 || x > engine.camera.x + engine.canvas.width + 100) {
+                continue;
+            }
+            
+            // Draw marker pole
             engine.drawRect(x, this.groundY - 60, 4, 60, '#64748b');
-            engine.drawText(`${i * 800}m`, x + 10, this.groundY - 40, 
+            
+            // Format time display
+            const timeString = hour < 12 ? `${hour}AM` : 
+                              hour === 12 ? '12PM' : 
+                              hour > 12 ? `${hour - 12}PM` : '12AM';
+            
+            // Draw time label
+            engine.drawText(timeString, x + 10, this.groundY - 40, 
                            '12px Arial', '#94a3b8');
         }
         
-
+        // Draw ending message after 10PM
+        const tenPMPosition = totalLevelWidth; // 10PM is at the very end
+        if (engine.camera.x > tenPMPosition - engine.canvas.width) {
+            this.drawEndingMessage(engine);
+        }
+    }
+    
+    drawEndingMessage(engine) {
+        const canvas = engine.canvas;
+        const ctx = engine.ctx;
+        
+        // Semi-transparent background
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Main message
+        ctx.fillStyle = '#22c55e';
+        ctx.font = 'bold 32px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('DEAL CLOSED!', canvas.width / 2, canvas.height / 2 - 40);
+        
+        // Subtitle
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '20px Arial';
+        ctx.fillText('Contract ready for signature', canvas.width / 2, canvas.height / 2);
+        ctx.fillText('The corporate closer strikes again!', canvas.width / 2, canvas.height / 2 + 30);
+        
+        // Time stamp
+        ctx.fillStyle = '#64748b';
+        ctx.font = '16px Arial';
+        ctx.fillText('10:00 PM - End of Business Day', canvas.width / 2, canvas.height / 2 + 80);
     }
 
     getActiveEnemies() {

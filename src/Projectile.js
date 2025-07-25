@@ -11,8 +11,11 @@ class Projectile {
     update(deltaTime, level) {
         this.x += this.speed * this.direction * deltaTime;
         
-        // Remove if off-screen
-        if (this.x < -100 || this.x > level.width + 100) {
+        // Remove if off-screen (using camera position)
+        const screenLeft = game.engine.camera.x - 50;
+        const screenRight = game.engine.camera.x + game.engine.canvas.width + 50;
+        
+        if (this.x < screenLeft || this.x > screenRight) {
             this.active = false;
         }
     }

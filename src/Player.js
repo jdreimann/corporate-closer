@@ -7,7 +7,7 @@ class Player {
         this.velocityX = 0;
         this.velocityY = 0;
         this.speed = 300;
-        this.jumpPower = 500;
+        this.jumpPower = 350;
         this.gravity = 1200;
         this.onGround = false;
         this.health = 100;
@@ -17,8 +17,12 @@ class Player {
         // Combat system
         this.emailCooldown = 0;
         this.callCooldown = 0;
-        this.callAmmo = 10;
-        this.maxCallAmmo = 10;
+        this.emailAmmo = 10;
+        this.maxEmailAmmo = 10;
+        this.emailRegenTimer = 0;
+        this.emailRegenRate = 1.0; // 1 email per second
+        this.callAmmo = 3;
+        this.maxCallAmmo = 3;
         
         // Animation system
         this.animationTime = 0;
@@ -32,6 +36,11 @@ class Player {
         // Visual effects
         this.damageFlash = 0;
         this.screenShake = 0;
+        
+        // Jump input tracking
+        this.jumpPressedLastFrame = false;
+        
+
     }
 
     update(deltaTime, engine, level) {
@@ -66,16 +75,21 @@ class Player {
             this.velocityX *= 0.8; // Friction
         }
 
-        // Jumping
-        if (jump && this.jumpsRemaining > 0) {
-            this.velocityY = -this.jumpPower;
-            this.jumpsRemaining--;
-            this.onGround = false;
-            this.isJumping = true;
+        // Simple double jump system
+        if (jump && !this.jumpPressedLastFrame) {
+            if (this.jumpsRemaining > 0) {
+                this.velocityY = -this.jumpPower;
+                this.jumpsRemaining--;
+                this.onGround = false;
+                this.isJumping = true;
+            }
         }
+        
+        // Track if jump was pressed this frame
+        this.jumpPressedLastFrame = jump;
 
         // Shooting
-        if (emailShoot && this.emailCooldown <= 0) {
+        if (emailShoot && this.emailCooldown <= 0 && this.emailAmmo > 0) {
             this.shootEmail();
         }
         
@@ -128,6 +142,13 @@ class Player {
     updateCooldowns(deltaTime) {
         this.emailCooldown = Math.max(0, this.emailCooldown - deltaTime);
         this.callCooldown = Math.max(0, this.callCooldown - deltaTime);
+        
+        // Email ammo regeneration
+        this.emailRegenTimer += deltaTime;
+        if (this.emailRegenTimer >= this.emailRegenRate && this.emailAmmo < this.maxEmailAmmo) {
+            this.emailAmmo++;
+            this.emailRegenTimer = 0;
+        }
     }
 
     updateEffects(deltaTime) {
@@ -143,6 +164,7 @@ class Player {
         );
         game.addProjectile(projectile);
         this.emailCooldown = 0.15; // 6.67 shots per second
+        this.emailAmmo--;
     }
 
     shootCall() {

@@ -47,7 +47,7 @@ class Game {
         this.player.update(deltaTime, this.engine, this.level);
         
         // Update level
-        this.level.update(deltaTime, this.player);
+        this.level.update(deltaTime, this.player, this.engine);
         
         // Update camera
         this.engine.updateCamera(this.player.x);
@@ -113,7 +113,8 @@ class Game {
     }
 
     checkVictoryCondition() {
-        if (this.level.isComplete() && this.player.x > this.level.width - 200) {
+        // Victory when player reaches the end of the level (after 10PM)
+        if (this.player.x > this.level.width - 100) {
             this.gameOver(true);
         }
     }
@@ -266,7 +267,7 @@ class Game {
         this.healthBar.style.width = `${healthPercent}%`;
         
         // Update ammo displays
-        this.emailAmmoElement.textContent = '∞';
+        this.emailAmmoElement.textContent = this.player.emailAmmo.toString();
         this.callAmmoElement.textContent = this.player.callAmmo.toString();
     }
 }
@@ -274,5 +275,14 @@ class Game {
 // Initialize game when page loads
 let game;
 document.addEventListener('DOMContentLoaded', () => {
-    game = new Game();
+    // Set up splash screen
+    const splashScreen = document.getElementById('splashScreen');
+    const gameContainer = document.getElementById('gameContainer');
+    const startGameBtn = document.getElementById('startGameBtn');
+    
+    startGameBtn.addEventListener('click', () => {
+        splashScreen.classList.add('hidden');
+        gameContainer.classList.remove('hidden');
+        game = new Game();
+    });
 });

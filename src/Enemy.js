@@ -10,7 +10,7 @@ class Enemy {
         this.scoreValue = 100;
     }
 
-    update(deltaTime, level, player) {
+    update(deltaTime, level, player, engine) {
         this.animationTime += deltaTime;
         this.damageFlash = Math.max(0, this.damageFlash - deltaTime);
         
@@ -52,17 +52,33 @@ class MeetingDecline extends Enemy {
         this.contactDamage = 15;
         this.scoreValue = 150;
     }
+    
+    checkPlayerCollision(player) {
+        if (GameEngine.checkCollision(this.getBounds(), player.getBounds())) {
+            // Reduce player health by 34% instead of fixed damage
+            const damageAmount = Math.floor(player.maxHealth * 0.34);
+            player.takeDamage(damageAmount);
+            
+            // Remove the declined calendar invite after collision
+            this.active = false;
+            
+            return true;
+        }
+        return false;
+    }
 
-    update(deltaTime, level, player) {
-        super.update(deltaTime, level, player);
+    update(deltaTime, level, player, engine) {
+        super.update(deltaTime, level, player, engine);
         
-        // Floating movement pattern
+        // Floating movement pattern (up and down)
         this.y = this.originalY + Math.sin(this.animationTime * this.frequency) * this.amplitude;
         
-        // Move towards player horizontally
-        const dx = player.x - this.x;
-        if (Math.abs(dx) > 20) {
-            this.x += Math.sign(dx) * this.speed * deltaTime;
+        // Move consistently from right to left across the screen
+        this.x -= this.speed * deltaTime;
+        
+        // Remove if off-screen to the left
+        if (this.x < -100) {
+            this.active = false;
         }
     }
 
@@ -117,8 +133,8 @@ class FinanceReview extends Enemy {
         this.shootInterval = 2.5;
     }
 
-    update(deltaTime, level, player) {
-        super.update(deltaTime, level, player);
+    update(deltaTime, level, player, engine) {
+        super.update(deltaTime, level, player, engine);
         
         // Patrol movement
         this.x += this.speed * this.direction * deltaTime;
@@ -208,22 +224,37 @@ class CriticalStakeholder extends Enemy {
         this.jumpTimer = 0;
         this.velocityY = 0;
         this.onGround = true;
+        
+        // Boss activation
+        this.isActivated = false;
     }
 
-    update(deltaTime, level, player) {
-        super.update(deltaTime, level, player);
+    update(deltaTime, level, player, engine) {
+        super.update(deltaTime, level, player, engine);
         
-        // Phase transitions
-        if (this.health <= this.maxHealth * 0.5 && this.phase === 1) {
-            this.phase = 2;
-            this.speed = 60;
+        // Check if 8PM marker is in view to activate boss
+        const eightPMPosition = 4800 * 0.875; // 8PM is at 87.5% of level
+        const cameraX = engine.camera.x;
+        const canvasWidth = engine.canvas.width;
+        
+        if (!this.isActivated && cameraX > eightPMPosition - canvasWidth) {
+            this.isActivated = true;
         }
         
-        // Movement AI
-        this.updateMovement(deltaTime, level, player);
-        
-        // Attack AI
-        this.updateAttacks(deltaTime, player);
+        // Only update boss behavior if activated
+        if (this.isActivated) {
+            // Phase transitions
+            if (this.health <= this.maxHealth * 0.5 && this.phase === 1) {
+                this.phase = 2;
+                this.speed = 60;
+            }
+            
+            // Movement AI
+            this.updateMovement(deltaTime, level, player);
+            
+            // Attack AI
+            this.updateAttacks(deltaTime, player);
+        }
     }
 
     updateMovement(deltaTime, level, player) {
