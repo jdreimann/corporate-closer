@@ -47,7 +47,7 @@ class Game {
         this.player.update(deltaTime, this.engine, this.level);
         
         // Update level
-        this.level.update(deltaTime, this.player, this.engine);
+        this.level.update(deltaTime, this.player, this.engine, this);
         
         // Update camera
         this.engine.updateCamera(this.player.x);
@@ -150,7 +150,7 @@ class Game {
             this.audioManager.playSound('gameOver');
         }
         
-        this.finalScore.textContent = this.score.toLocaleString();
+        this.finalScore.textContent = `$${this.score.toLocaleString()}`;
         this.gameOverScreen.classList.remove('hidden');
     }
 
@@ -259,8 +259,8 @@ class Game {
     }
 
     updateUI() {
-        // Update score
-        this.scoreElement.textContent = this.score.toLocaleString();
+        // Update score with dollar signs
+        this.scoreElement.textContent = `$${this.score.toLocaleString()}`;
         
         // Update health bar
         const healthPercent = (this.player.health / this.player.maxHealth) * 100;

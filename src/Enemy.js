@@ -130,7 +130,7 @@ class FinanceReview extends Enemy {
         this.contactDamage = 20;
         this.scoreValue = 200;
         this.shootTimer = 0;
-        this.shootInterval = 2.5;
+        this.shootInterval = 1.8; // Increased fire rate (was 2.5)
     }
 
     update(deltaTime, level, player, engine) {
@@ -207,8 +207,8 @@ class CriticalStakeholder extends Enemy {
         super(x, y);
         this.width = 60;
         this.height = 80;
-        this.health = 120;
-        this.maxHealth = 120;
+        this.health = 180; // Increased by 50% (was 120)
+        this.maxHealth = 180; // Increased by 50% (was 120)
         this.speed = 40;
         this.direction = 1;
         this.contactDamage = 30;
@@ -307,7 +307,7 @@ class CriticalStakeholder extends Enemy {
         const direction = Math.sign(player.x - this.x);
         const projectile = new EnemyProjectile(
             this.x + this.width / 2,
-            this.y + 20,
+            this.y + 60, // Lower position (was 20) - will hit player unless they jump
             direction
         );
         game.addEnemyProjectile(projectile);
@@ -320,7 +320,7 @@ class CriticalStakeholder extends Enemy {
                 const spread = (i - 1) * 0.3;
                 const projectile = new EnemyProjectile(
                     this.x + this.width / 2,
-                    this.y + 20,
+                    this.y + 60, // Lower position (was 20) - will hit player unless they jump
                     direction + spread
                 );
                 game.addEnemyProjectile(projectile);

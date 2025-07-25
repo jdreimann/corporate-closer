@@ -11,6 +11,12 @@ class Level {
         this.windowStates = new Map(); // Store window states
         this.lastWindowUpdate = 0; // Track last window state update
         
+        // Dynamic calendar enemy generation
+        this.calendarGenerationActive = true;
+        this.lastCalendarSpawn = 0;
+        this.calendarSpawnInterval = 2.0; // Base interval in seconds
+        this.eightPMPosition = 4800 * 0.875; // 8PM marker position
+        
         this.generateLevel();
     }
 
@@ -47,14 +53,6 @@ class Level {
     }
 
     createEnemies() {
-        // Meeting Declines (floating enemies)
-        this.enemies.push(new MeetingDecline(400, 300));
-        this.enemies.push(new MeetingDecline(700, 250));
-        this.enemies.push(new MeetingDecline(1200, 180));
-        this.enemies.push(new MeetingDecline(1800, 150));
-        this.enemies.push(new MeetingDecline(2500, 200));
-        this.enemies.push(new MeetingDecline(3100, 160));
-        
         // Finance Reviews (ground patrolling enemies)
         this.enemies.push(new FinanceReview(600, this.groundY - 40));
         this.enemies.push(new FinanceReview(1000, this.groundY - 40));
@@ -65,8 +63,7 @@ class Level {
         
         // Critical Stakeholder (Boss) - appears after 8PM marker
         // 8PM is at 75% of the level (6AM to 10PM = 16 hours, 8PM is 14 hours in = 87.5%)
-        const eightPMPosition = 4800 * 0.875; // 4200
-        this.enemies.push(new CriticalStakeholder(eightPMPosition + 200, this.groundY - 80));
+        this.enemies.push(new CriticalStakeholder(this.eightPMPosition + 200, this.groundY - 80));
     }
 
     createCollectibles() {
@@ -98,21 +95,21 @@ class Level {
             type: 'ammo', 
             x: 1120, y: 250, 
             width: 15, height: 15, 
-            value: 5, 
+            value: 1, 
             collected: false 
         });
         this.collectibles.push({ 
             type: 'ammo', 
             x: 1920, y: 220, 
             width: 15, height: 15, 
-            value: 5, 
+            value: 1, 
             collected: false 
         });
         this.collectibles.push({ 
             type: 'ammo', 
             x: 3020, y: 210, 
             width: 15, height: 15, 
-            value: 5, 
+            value: 1, 
             collected: false 
         });
         
@@ -133,7 +130,7 @@ class Level {
         });
     }
 
-    update(deltaTime, player, engine) {
+    update(deltaTime, player, engine, game) {
         // Update enemies
         this.enemies = this.enemies.filter(enemy => {
             if (enemy.active) {
@@ -150,26 +147,78 @@ class Level {
             this.lastWindowUpdate = currentTime;
         }
         
+        // Dynamic calendar enemy generation
+        this.updateCalendarGeneration(deltaTime, engine);
+        
         // Check collectible collisions
         for (const collectible of this.collectibles) {
             if (!collectible.collected && 
                 GameEngine.checkCollision(player.getBounds(), collectible)) {
                 
+                console.log('Collectible collision detected:', collectible.type, collectible.value);
                 collectible.collected = true;
                 
                 switch (collectible.type) {
                     case 'health':
-                        player.heal(collectible.value);
+                        // Increase health by 50% up to 100% max
+                        const healthIncrease = Math.floor(player.maxHealth * 0.5);
+                        console.log('Healing player by:', healthIncrease, 'Current health:', player.health);
+                        player.heal(healthIncrease);
+                        console.log('New health:', player.health);
                         break;
                     case 'ammo':
-                        player.addCallAmmo(collectible.value);
+                        // Increase call ammo (not email ammo)
+                        console.log('Adding call ammo:', collectible.value, 'Current call ammo:', player.callAmmo);
+                        player.callAmmo += collectible.value; // No maximum limit
+                        console.log('New call ammo:', player.callAmmo);
                         break;
                     case 'bonus':
+                        console.log('Adding score:', collectible.value);
                         game.addScore(collectible.value);
                         break;
                 }
             }
         }
+    }
+    
+    updateCalendarGeneration(deltaTime, engine) {
+        // Check if 8PM marker is in view to stop generation
+        const cameraX = engine.camera.x;
+        const canvasWidth = engine.canvas.width;
+        
+        if (this.calendarGenerationActive && cameraX > this.eightPMPosition - canvasWidth) {
+            this.calendarGenerationActive = false;
+            console.log('Calendar generation stopped - 8PM marker in view');
+        }
+        
+        // Generate new calendar enemies at random intervals
+        if (this.calendarGenerationActive) {
+            this.lastCalendarSpawn += deltaTime;
+            
+            // Random interval between 1.5 and 3.5 seconds
+            const spawnInterval = this.calendarSpawnInterval + Math.random() * 2.0;
+            
+            if (this.lastCalendarSpawn >= spawnInterval) {
+                this.spawnCalendarEnemy(engine);
+                this.lastCalendarSpawn = 0;
+            }
+        }
+    }
+    
+    spawnCalendarEnemy(engine) {
+        // Spawn position: right edge of screen + some offset
+        const spawnX = engine.camera.x + engine.canvas.width + 100;
+        
+        // Random elevation across bottom 2/3rds of game area (200-520)
+        const minY = 200;
+        const maxY = 520;
+        const spawnY = minY + Math.random() * (maxY - minY);
+        
+        // Create new calendar enemy
+        const newEnemy = new MeetingDecline(spawnX, spawnY);
+        this.enemies.push(newEnemy);
+        
+        console.log('Spawned calendar enemy at:', spawnX, spawnY);
     }
 
     draw(engine) {

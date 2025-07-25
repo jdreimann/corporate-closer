@@ -22,7 +22,7 @@ class Player {
         this.emailRegenTimer = 0;
         this.emailRegenRate = 1.0; // 1 email per second
         this.callAmmo = 3;
-        this.maxCallAmmo = 3;
+        this.maxCallAmmo = Infinity; // No maximum limit on call ammo
         
         // Animation system
         this.animationTime = 0;
