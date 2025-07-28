@@ -78,10 +78,10 @@ class Player {
         // Simple double jump system
         if (jump && !this.jumpPressedLastFrame) {
             if (this.jumpsRemaining > 0) {
-                this.velocityY = -this.jumpPower;
+            this.velocityY = -this.jumpPower;
                 this.jumpsRemaining--;
-                this.onGround = false;
-                this.isJumping = true;
+            this.onGround = false;
+            this.isJumping = true;
             }
         }
         

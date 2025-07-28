@@ -1,6 +1,7 @@
 {
-  "name": "vite-react-typescript-starter",
+  "name": "corporate-closer",
   "private": true,
+  "description": "Navigate the corporate maze as a sales professional in this retro-style platformer game",
   "version": "0.0.0",
   "type": "module",
   "scripts": {

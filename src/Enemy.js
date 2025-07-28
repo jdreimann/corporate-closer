@@ -53,7 +53,7 @@ class MeetingDecline extends Enemy {
         this.contactDamage = 15;
         this.scoreValue = 150;
     }
-    
+
     checkPlayerCollision(player) {
         if (GameEngine.checkCollision(this.getBounds(), player.getBounds())) {
             // Reduce player health by 34% instead of fixed damage
@@ -245,17 +245,17 @@ class CriticalStakeholder extends Enemy {
         
         // Only update boss behavior if activated
         if (this.isActivated) {
-            // Phase transitions
-            if (this.health <= this.maxHealth * 0.5 && this.phase === 1) {
-                this.phase = 2;
-                this.speed = 60;
-            }
-            
-            // Movement AI
-            this.updateMovement(deltaTime, level, player);
-            
-            // Attack AI
-            this.updateAttacks(deltaTime, player);
+        // Phase transitions
+        if (this.health <= this.maxHealth * 0.5 && this.phase === 1) {
+            this.phase = 2;
+            this.speed = 60;
+        }
+        
+        // Movement AI
+        this.updateMovement(deltaTime, level, player);
+        
+        // Attack AI
+        this.updateAttacks(deltaTime, player);
         }
     }
 
