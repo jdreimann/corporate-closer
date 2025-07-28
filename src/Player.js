@@ -1,4 +1,7 @@
-class Player {
+import { GameEngine } from './GameEngine.js';
+import { EmailProjectile, CallProjectile } from './Projectile.js';
+
+export class Player {
     constructor(x, y) {
         this.x = x;
         this.y = y;
@@ -162,7 +165,7 @@ class Player {
             this.y + this.height / 2,
             this.facingRight ? 1 : -1
         );
-        game.addProjectile(projectile);
+        window.game.addProjectile(projectile);
         this.emailCooldown = 0.15; // 6.67 shots per second
         this.emailAmmo--;
     }
@@ -173,7 +176,7 @@ class Player {
             this.y + this.height / 2,
             this.facingRight ? 1 : -1
         );
-        game.addProjectile(projectile);
+        window.game.addProjectile(projectile);
         this.callCooldown = 0.8; // 1.25 shots per second
         this.callAmmo--;
     }
@@ -184,7 +187,7 @@ class Player {
         this.screenShake = 0.5;
         
         if (this.health <= 0) {
-            game.gameOver(false);
+            window.game.gameOver(false);
         }
     }
 

@@ -1,3 +1,5 @@
+export { GameEngine };
+
 class GameEngine {
     constructor(canvas) {
         this.canvas = canvas;

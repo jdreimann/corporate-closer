@@ -1,3 +1,8 @@
+export { Level };
+import { FinanceReview, CriticalStakeholder } from './Enemy.js';
+import { GameEngine } from './GameEngine.js';
+import { MeetingDecline } from './Enemy.js';
+
 class Level {
     constructor() {
         this.width = 4800; // 4 screens wide
@@ -174,7 +179,7 @@ class Level {
                         break;
                     case 'bonus':
                         console.log('Adding score:', collectible.value);
-                        game.addScore(collectible.value);
+                        window.game.addScore(collectible.value);
                         break;
                 }
             }

@@ -1,3 +1,6 @@
+export { Projectile, EmailProjectile, CallProjectile, EnemyProjectile };
+import { GameEngine } from './GameEngine.js';
+
 class Projectile {
     constructor(x, y, direction) {
         this.x = x;
@@ -12,8 +15,8 @@ class Projectile {
         this.x += this.speed * this.direction * deltaTime;
         
         // Remove if off-screen (using camera position)
-        const screenLeft = game.engine.camera.x - 50;
-        const screenRight = game.engine.camera.x + game.engine.canvas.width + 50;
+        const screenLeft = window.game.engine.camera.x - 50;
+        const screenRight = window.game.engine.camera.x + window.game.engine.canvas.width + 50;
         
         if (this.x < screenLeft || this.x > screenRight) {
             this.active = false;

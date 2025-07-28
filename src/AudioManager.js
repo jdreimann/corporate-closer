@@ -1,3 +1,5 @@
+export { AudioManager };
+
 class AudioManager {
     constructor() {
         this.sounds = {};

@@ -1,4 +1,12 @@
-class Game {
+// Import all game modules
+import { GameEngine } from './GameEngine.js';
+import { Player } from './Player.js';
+import { Projectile, EmailProjectile, CallProjectile, EnemyProjectile } from './Projectile.js';
+import { Enemy, MeetingDecline, FinanceReview, CriticalStakeholder } from './Enemy.js';
+import { Level } from './Level.js';
+import { AudioManager } from './AudioManager.js';
+
+export class Game {
     constructor() {
         this.canvas = document.getElementById('gameCanvas');
         this.engine = new GameEngine(this.canvas);
@@ -301,6 +309,6 @@ document.addEventListener('DOMContentLoaded', () => {
     startGameBtn.addEventListener('click', () => {
         splashScreen.classList.add('hidden');
         gameContainer.classList.remove('hidden');
-        game = new Game();
+        window.game = new Game();
     });
 });

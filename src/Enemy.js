@@ -1,3 +1,7 @@
+export { Enemy, MeetingDecline, FinanceReview, CriticalStakeholder };
+import { GameEngine } from './GameEngine.js';
+import { EnemyProjectile } from './Projectile.js';
+
 class Enemy {
     constructor(x, y) {
         this.x = x;
@@ -17,7 +21,7 @@ class Enemy {
         
         if (this.health <= 0) {
             this.active = false;
-            game.addScore(this.scoreValue);
+            window.game.addScore(this.scoreValue);
         }
     }
 
@@ -164,7 +168,7 @@ class FinanceReview extends Enemy {
             this.y + this.height / 2,
             direction
         );
-        game.addEnemyProjectile(projectile);
+        window.game.addEnemyProjectile(projectile);
     }
 
     draw(engine) {
@@ -312,7 +316,7 @@ class CriticalStakeholder extends Enemy {
             this.y + 60, // Lower position (was 20) - will hit player unless they jump
             direction
         );
-        game.addEnemyProjectile(projectile);
+        window.game.addEnemyProjectile(projectile);
     }
 
     burstShot(player) {
@@ -325,7 +329,7 @@ class CriticalStakeholder extends Enemy {
                     this.y + 60, // Lower position (was 20) - will hit player unless they jump
                     direction + spread
                 );
-                game.addEnemyProjectile(projectile);
+                window.game.addEnemyProjectile(projectile);
             }, i * 150);
         }
     }
