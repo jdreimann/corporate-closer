@@ -99,6 +99,15 @@ class Game {
                     enemy.takeDamage(projectile.damage);
                     this.audioManager.playSound(enemy.health <= 0 ? 'enemyDestroy' : 'enemyHit');
                     projectile.hit();
+                    
+                    // Check if Critical Stakeholder was defeated
+                    if (enemy instanceof CriticalStakeholder && enemy.health <= 0) {
+                        // Reset ambient track to normal mode after boss defeat
+                        setTimeout(() => {
+                            this.audioManager.resetAmbientTrack();
+                        }, 3000); // Wait 3 seconds after boss defeat
+                    }
+                    
                     break;
                 }
             }
@@ -165,6 +174,7 @@ class Game {
         // Reset game state
         this.gameState = 'playing';
         this.score = 0;
+        this.bossFirstSeen = false;
         
         // Reset player
         this.player = new Player(100, 400);
@@ -178,16 +188,15 @@ class Game {
         
         // Reset camera
         this.engine.camera.x = 0;
-        this.engine.camera.targetX = 0;
         
-        // Reset boss visibility tracking
-        this.bossFirstSeen = false;
+        // Reset ambient track to normal mode
+        this.audioManager.resetAmbientTrack();
         
         // Hide game over screen
         this.gameOverScreen.classList.add('hidden');
         
-        // Restart background music
-        this.audioManager.playBackgroundMusic();
+        // Restart game loop
+        this.engine.start((deltaTime) => this.gameLoop(deltaTime));
     }
 
     render() {
@@ -226,6 +235,8 @@ class Game {
             // Mark boss as seen when it first comes into view
             if (bossInView && !this.bossFirstSeen) {
                 this.bossFirstSeen = true;
+                // Trigger dramatic audio transition
+                this.audioManager.transitionToDramaticMode();
             }
             
             // Only show health bar if boss has been seen
@@ -255,14 +266,14 @@ class Game {
             }
         }
         
-        // Performance indicator
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-        ctx.fillRect(10, 10, 200, 30);
-        ctx.fillStyle = '#fff';
-        ctx.font = '12px Arial';
-        ctx.textAlign = 'left';
-        ctx.fillText(`FPS: ${Math.round(1 / this.engine.deltaTime)}`, 15, 30);
-        ctx.fillText(`Enemies: ${this.level.getActiveEnemies().length}`, 80, 30);
+        // Performance indicator - HIDDEN
+        // ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        // ctx.fillRect(10, 10, 200, 30);
+        // ctx.fillStyle = '#fff';
+        // ctx.font = '12px Arial';
+        // ctx.textAlign = 'left';
+        // ctx.fillText(`FPS: ${Math.round(1 / this.engine.deltaTime)}`, 15, 30);
+        // ctx.fillText(`Enemies: ${this.level.getActiveEnemies().length}`, 80, 30);
     }
 
     updateUI() {

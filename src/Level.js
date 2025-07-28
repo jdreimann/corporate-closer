@@ -387,17 +387,22 @@ class Level {
                 continue;
             }
             
-            // Draw marker pole
-            engine.drawRect(x, this.groundY - 60, 4, 60, '#64748b');
+            // Draw marker pole - make it bolder and taller
+            engine.drawRect(x - 1, this.groundY - 80, 6, 80, '#475569'); // Thicker, darker pole
+            engine.drawRect(x, this.groundY - 78, 4, 76, '#64748b'); // Inner highlight
             
             // Format time display
             const timeString = hour < 12 ? `${hour}AM` : 
                               hour === 12 ? '12PM' : 
                               hour > 12 ? `${hour - 12}PM` : '12AM';
             
-            // Draw time label
-            engine.drawText(timeString, x + 10, this.groundY - 40, 
-                           '12px Arial', '#94a3b8');
+            // Draw time label with larger, bolder font
+            engine.drawText(timeString, x + 15, this.groundY - 50, 
+                           'bold 18px Arial', '#f1f5f9'); // Larger, bolder, brighter text
+            
+            // Add a subtle background highlight for better readability
+            const textWidth = engine.ctx.measureText(timeString).width;
+            engine.drawRect(x + 8, this.groundY - 65, textWidth + 14, 20, 'rgba(0, 0, 0, 0.3)');
         }
         
         // Draw ending message after 10PM
