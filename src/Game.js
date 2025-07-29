@@ -176,26 +176,9 @@ export class Game {
         
         this.finalScore.textContent = `$${this.score.toLocaleString()}`;
         this.gameOverScreen.classList.remove('hidden');
-        
-        // Add space key listener for game over screen
-        this.gameOverSpaceListener = (event) => {
-            if (event.code === 'Space') {
-                event.preventDefault();
-                this.restart();
-                // Remove this listener once game restarts
-                document.removeEventListener('keydown', this.gameOverSpaceListener);
-            }
-        };
-        document.addEventListener('keydown', this.gameOverSpaceListener);
     }
 
     restart() {
-        // Remove game over space listener if it exists
-        if (this.gameOverSpaceListener) {
-            document.removeEventListener('keydown', this.gameOverSpaceListener);
-            this.gameOverSpaceListener = null;
-        }
-        
         // Reset game state
         this.gameState = 'playing';
         this.score = 0;
@@ -323,25 +306,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const gameContainer = document.getElementById('gameContainer');
     const startGameBtn = document.getElementById('startGameBtn');
     
-    // Function to start the game
-    const startGame = () => {
+    startGameBtn.addEventListener('click', () => {
         splashScreen.classList.add('hidden');
         gameContainer.classList.remove('hidden');
         window.game = new Game();
-    };
-    
-    // Click event for start button
-    startGameBtn.addEventListener('click', startGame);
-    
-    // Keyboard event for space key on splash screen and game over screen
-    let splashSpaceListener = (event) => {
-        if (event.code === 'Space') {
-            event.preventDefault();
-            startGame();
-            // Remove this listener once game starts
-            document.removeEventListener('keydown', splashSpaceListener);
-        }
-    };
-    
-    document.addEventListener('keydown', splashSpaceListener);
+    });
 });
