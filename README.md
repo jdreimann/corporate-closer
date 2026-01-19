@@ -1,5 +1,5 @@
 
-### 🎯 Key Components 2026
+### 🎯 Key Components
 
 #### Game Architecture
 - **Game.js**: Central game controller managing state, collisions, and victory conditions
