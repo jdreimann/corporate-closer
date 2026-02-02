@@ -22,6 +22,8 @@ export class Game {
         this.bossFirstSeen = false;
         
         this.setupUI();
+        this.initializePendo();
+
         this.start();
     }
 
@@ -35,6 +37,18 @@ export class Game {
         this.gameOverTitle = document.getElementById('gameOverTitle');
         this.gameOverMessage = document.getElementById('gameOverMessage');
         this.finalScore = document.getElementById('finalScore');
+
+    initializePendo() {
+        // Initialize Pendo with anonymous visitor ID
+        if (typeof pendo !== 'undefined') {
+            pendo.initialize({
+                visitor: {
+                    id: 'anonymous_visitor_' + Math.random().toString(36).substr(2, 9)
+                }
+            });
+        }
+    }
+
     }
 
     start() {
