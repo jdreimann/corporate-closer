@@ -11,16 +11,19 @@ export class Game {
         this.canvas = document.getElementById('gameCanvas');
         this.engine = new GameEngine(this.canvas);
         this.audioManager = new AudioManager();
-        
+
         this.player = new Player(100, 400);
         this.level = new Level();
         this.projectiles = [];
         this.enemyProjectiles = [];
-        
+
         this.score = 0;
         this.gameState = 'playing'; // 'playing', 'gameOver', 'victory'
         this.bossFirstSeen = false;
-        
+        this.gameStartTime = Date.now(); // Track game start time for duration
+        this.bossEncounteredTime = null; // Track when boss was first encountered
+        this.scoreThresholdsReached = new Set(); // Track which score thresholds have been reached
+
         this.setupUI();
         this.start();
     }
@@ -90,7 +93,7 @@ export class Game {
             
             // Check collision with player
             if (projectile.checkCollision(this.player)) {
-                this.player.takeDamage(projectile.damage);
+                this.player.takeDamage(projectile.damage, 'enemy_projectile');
                 this.audioManager.playSound('playerHit');
                 projectile.hit();
             }
@@ -110,6 +113,20 @@ export class Game {
                     
                     // Check if Critical Stakeholder was defeated
                     if (enemy instanceof CriticalStakeholder && enemy.health <= 0) {
+                        // Track boss defeated event
+                        if (typeof pendo !== 'undefined') {
+                            const bossDefeatTime = this.bossEncounteredTime
+                                ? Math.floor((Date.now() - this.bossEncounteredTime) / 1000)
+                                : 0;
+                            pendo.track('boss_defeated', {
+                                boss_defeat_time_seconds: bossDefeatTime,
+                                player_health_remaining: this.player.health,
+                                score_at_defeat: this.score,
+                                projectiles_used: this.projectiles.length,
+                                boss_defeat_timestamp: new Date().toISOString()
+                            });
+                        }
+
                         // Reset ambient track to normal mode after boss defeat
                         setTimeout(() => {
                             this.audioManager.resetAmbientTrack();
@@ -158,22 +175,72 @@ export class Game {
     }
 
     addScore(points) {
+        const previousScore = this.score;
         this.score += points;
+
+        // Check for score threshold milestones
+        const thresholds = [100000, 250000, 500000, 1000000, 2000000, 5000000];
+
+        for (const threshold of thresholds) {
+            // Check if we just crossed this threshold
+            if (previousScore < threshold && this.score >= threshold && !this.scoreThresholdsReached.has(threshold)) {
+                this.scoreThresholdsReached.add(threshold);
+
+                // Track score threshold reached event
+                if (typeof pendo !== 'undefined') {
+                    const timeToThreshold = Math.floor((Date.now() - this.gameStartTime) / 1000);
+                    pendo.track('score_threshold_reached', {
+                        score_threshold: threshold,
+                        time_to_threshold_seconds: timeToThreshold,
+                        enemies_defeated: this.enemyDefeatCount || 0,
+                        collectibles_gathered: this.level.collectibles.filter(c => c.collected).length,
+                        player_health: this.player.health
+                    });
+                }
+            }
+        }
     }
 
     gameOver(victory) {
         this.gameState = 'gameOver';
-        
+        const timePlayedSeconds = Math.floor((Date.now() - this.gameStartTime) / 1000);
+
         if (victory) {
             this.gameOverTitle.textContent = 'Deal Closed!';
             this.gameOverMessage.textContent = 'Congratulations! You\'ve successfully navigated the corporate maze and closed the deal. Your sales skills are unmatched!';
             this.audioManager.playSound('victory');
+
+            // Track game completed victory event
+            if (typeof pendo !== 'undefined') {
+                const boss = this.level.enemies.find(e => e instanceof CriticalStakeholder);
+                pendo.track('game_completed_victory', {
+                    final_score: this.score,
+                    boss_defeated: boss ? !boss.active : false,
+                    time_played_seconds: timePlayedSeconds,
+                    collectibles_gathered: this.level.collectibles.filter(c => c.collected).length,
+                    enemies_defeated: this.level.initialEnemyCount - this.level.enemies.filter(e => e.active).length,
+                    completion_timestamp: new Date().toISOString()
+                });
+            }
         } else {
             this.gameOverTitle.textContent = 'Deal Lost';
             this.gameOverMessage.textContent = 'The corporate world got the better of you this time. Don\'t give up - every great salesperson faces rejection!';
             this.audioManager.playSound('gameOver');
+
+            // Track game completed defeat event
+            if (typeof pendo !== 'undefined') {
+                pendo.track('game_completed_defeat', {
+                    final_score: this.score,
+                    player_x_position: Math.floor(this.player.x),
+                    time_played_seconds: timePlayedSeconds,
+                    cause_of_death: 'health_depleted',
+                    enemies_alive: this.level.enemies.filter(e => e.active).length,
+                    health_pickups_collected: this.level.collectibles.filter(c => c.collected && c.type === 'health').length,
+                    defeat_timestamp: new Date().toISOString()
+                });
+            }
         }
-        
+
         this.finalScore.textContent = `$${this.score.toLocaleString()}`;
         this.gameOverScreen.classList.remove('hidden');
     }
@@ -243,8 +310,20 @@ export class Game {
             // Mark boss as seen when it first comes into view
             if (bossInView && !this.bossFirstSeen) {
                 this.bossFirstSeen = true;
+                this.bossEncounteredTime = Date.now();
                 // Trigger dramatic audio transition
                 this.audioManager.transitionToDramaticMode();
+
+                // Track boss encountered event
+                if (typeof pendo !== 'undefined') {
+                    const timeToBoss = Math.floor((Date.now() - this.gameStartTime) / 1000);
+                    pendo.track('boss_encountered', {
+                        player_health: this.player.health,
+                        current_score: this.score,
+                        time_to_boss_seconds: timeToBoss,
+                        boss_encounter_timestamp: new Date().toISOString()
+                    });
+                }
             }
             
             // Only show health bar if boss has been seen
@@ -310,5 +389,14 @@ document.addEventListener('DOMContentLoaded', () => {
         splashScreen.classList.add('hidden');
         gameContainer.classList.remove('hidden');
         window.game = new Game();
+
+        // Track game started event
+        if (typeof pendo !== 'undefined') {
+            pendo.track('game_started', {
+                session_id: Date.now().toString(),
+                timestamp: new Date().toISOString(),
+                player_started_from_splash: true
+            });
+        }
     });
 });

@@ -9,19 +9,22 @@ class Level {
         this.height = 600;
         this.groundY = 520;
         this.backgroundColor = '#0f172a';
-        
+
         this.platforms = [];
         this.enemies = [];
         this.collectibles = [];
         this.windowStates = new Map(); // Store window states
         this.lastWindowUpdate = 0; // Track last window state update
-        
+
         // Dynamic calendar enemy generation
         this.calendarGenerationActive = true;
         this.lastCalendarSpawn = 0;
         this.calendarSpawnInterval = 2.0; // Base interval in seconds
         this.eightPMPosition = 4800 * 0.875; // 8PM marker position
-        
+
+        // Milestone tracking
+        this.milestonesReached = new Set(); // Track which milestones have been reached
+
         this.generateLevel();
     }
 
@@ -144,25 +147,30 @@ class Level {
             }
             return false;
         });
-        
+
         // Update window states every 3-8 seconds
         const currentTime = Date.now();
         if (currentTime - this.lastWindowUpdate > 3000 + Math.random() * 5000) {
             this.updateWindowStates();
             this.lastWindowUpdate = currentTime;
         }
-        
+
+        // Check for milestone reached
+        this.checkMilestones(player, game);
+
         // Dynamic calendar enemy generation
         this.updateCalendarGeneration(deltaTime, engine);
         
         // Check collectible collisions
         for (const collectible of this.collectibles) {
-            if (!collectible.collected && 
+            if (!collectible.collected &&
                 GameEngine.checkCollision(player.getBounds(), collectible)) {
-                
+
                 console.log('Collectible collision detected:', collectible.type, collectible.value);
                 collectible.collected = true;
-                
+
+                const healthBefore = player.health;
+
                 switch (collectible.type) {
                     case 'health':
                         // Increase health by 50% up to 100% max
@@ -175,6 +183,7 @@ class Level {
                         // Increase call ammo (not email ammo)
                         console.log('Adding call ammo:', collectible.value, 'Current call ammo:', player.callAmmo);
                         player.callAmmo += collectible.value; // No maximum limit
+                        player.lastAmmoPickupTime = Date.now(); // Track when ammo was picked up
                         console.log('New call ammo:', player.callAmmo);
                         break;
                     case 'bonus':
@@ -182,10 +191,60 @@ class Level {
                         window.game.addScore(collectible.value);
                         break;
                 }
+
+                // Track collectible gathered event
+                if (typeof pendo !== 'undefined') {
+                    pendo.track('collectible_gathered', {
+                        collectible_type: collectible.type,
+                        collectible_value: collectible.value,
+                        player_position_x: Math.floor(player.x),
+                        player_health_before: healthBefore,
+                        player_health_after: player.health,
+                        current_score: window.game.score
+                    });
+                }
             }
         }
     }
     
+    checkMilestones(player, game) {
+        // Define time markers (every 2 hours from 8AM to 8PM)
+        const totalLevelWidth = 4800;
+        const startTime = 6; // 6 AM
+        const endTime = 22; // 10 PM
+        const totalHours = endTime - startTime;
+
+        // Check milestones at 8AM, 10AM, 12PM, 2PM, 4PM, 6PM, 8PM
+        const milestones = [8, 10, 12, 14, 16, 18, 20];
+
+        for (const hour of milestones) {
+            const timeProgress = (hour - startTime) / totalHours;
+            const milestoneX = timeProgress * totalLevelWidth;
+
+            // Check if player has passed this milestone and hasn't been tracked yet
+            if (player.x >= milestoneX && !this.milestonesReached.has(hour)) {
+                this.milestonesReached.add(hour);
+
+                // Track milestone reached event
+                if (typeof pendo !== 'undefined') {
+                    const timeToMilestone = Math.floor((Date.now() - game.gameStartTime) / 1000);
+                    const timeString = hour < 12 ? `${hour}AM` :
+                                      hour === 12 ? '12PM' :
+                                      `${hour - 12}PM`;
+
+                    pendo.track('milestone_reached', {
+                        time_marker: timeString,
+                        player_health: player.health,
+                        current_score: game.score,
+                        enemies_defeated_count: game.enemyDefeatCount || 0,
+                        collectibles_gathered_count: this.collectibles.filter(c => c.collected).length,
+                        time_to_milestone_seconds: timeToMilestone
+                    });
+                }
+            }
+        }
+    }
+
     updateCalendarGeneration(deltaTime, engine) {
         // Check if 8PM marker is in view to stop generation
         const cameraX = engine.camera.x;
@@ -213,17 +272,29 @@ class Level {
     spawnCalendarEnemy(engine) {
         // Spawn position: just out of view to the right of the camera
         const spawnX = engine.camera.x + engine.canvas.width + 50;
-        
+
         // Random elevation across bottom 2/3rds of game area (250-520) - increased minimum
         const minY = 250;
         const maxY = 520;
         const spawnY = minY + Math.random() * (maxY - minY);
-        
+
         // Create new calendar enemy
         const newEnemy = new MeetingDecline(spawnX, spawnY);
         this.enemies.push(newEnemy);
-        
+
         console.log('Spawned calendar enemy at:', spawnX, spawnY);
+
+        // Track enemy spawned event
+        if (typeof pendo !== 'undefined') {
+            const enemiesAlive = this.enemies.filter(e => e.active).length;
+            pendo.track('enemy_spawned', {
+                enemy_type: 'meeting_decline',
+                spawn_position_x: Math.floor(spawnX),
+                spawn_position_y: Math.floor(spawnY),
+                enemies_alive_count: enemiesAlive,
+                calendar_generation_active: this.calendarGenerationActive
+            });
+        }
     }
 
     draw(engine) {

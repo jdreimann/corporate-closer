@@ -125,7 +125,7 @@
                 <h2 id="gameOverTitle">Deal Closed!</h2>
                 <p id="gameOverMessage">Congratulations! You've successfully navigated the corporate sales process.</p>
                 <p>Final Score: <span id="finalScore">0</span></p>
-                <button onclick="game.restart()">Start New Quarter</button>
+                <button onclick="if (typeof pendo !== 'undefined') { pendo.track('game_restarted', { previous_game_outcome: window.game.gameState === 'playing' ? 'unknown' : (window.game.score > 0 ? 'victory' : 'defeat'), previous_final_score: window.game.score, restart_timestamp: new Date().toISOString() }); } game.restart();">Start New Quarter</button>
             </div>
         </div>
     </div>

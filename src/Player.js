@@ -42,7 +42,11 @@ export class Player {
         
         // Jump input tracking
         this.jumpPressedLastFrame = false;
-        
+
+        // Ammo tracking
+        this.lastAmmoPickupTime = null;
+        this.emailAmmoDepletedTracked = false;
+        this.callAmmoDepletedTracked = false;
 
     }
 
@@ -81,10 +85,22 @@ export class Player {
         // Simple double jump system
         if (jump && !this.jumpPressedLastFrame) {
             if (this.jumpsRemaining > 0) {
-            this.velocityY = -this.jumpPower;
+                const isDoubleJump = this.jumpsRemaining === 1;
+                this.velocityY = -this.jumpPower;
                 this.jumpsRemaining--;
-            this.onGround = false;
-            this.isJumping = true;
+                this.onGround = false;
+                this.isJumping = true;
+
+                // Track player jumped event
+                if (typeof pendo !== 'undefined') {
+                    pendo.track('player_jumped', {
+                        jump_type: isDoubleJump ? 'double_jump' : 'single_jump',
+                        jumps_remaining: this.jumpsRemaining,
+                        player_position_x: Math.floor(this.x),
+                        player_position_y: Math.floor(this.y),
+                        is_double_jump: isDoubleJump
+                    });
+                }
             }
         }
         
@@ -92,12 +108,50 @@ export class Player {
         this.jumpPressedLastFrame = jump;
 
         // Shooting
-        if (emailShoot && this.emailCooldown <= 0 && this.emailAmmo > 0) {
-            this.shootEmail();
+        if (emailShoot && this.emailCooldown <= 0) {
+            if (this.emailAmmo > 0) {
+                this.shootEmail();
+            } else {
+                // Track ammo depleted event for email (though it regenerates)
+                if (typeof pendo !== 'undefined' && !this.emailAmmoDepletedTracked) {
+                    const enemiesInView = window.game.level.enemies.filter(e =>
+                        e.active && Math.abs(e.x - this.x) < window.game.canvas.width
+                    ).length;
+
+                    pendo.track('ammo_depleted', {
+                        weapon_type: 'email',
+                        player_position_x: Math.floor(this.x),
+                        enemies_in_view: enemiesInView,
+                        time_since_last_ammo_pickup: 0 // Email ammo regenerates, not picked up
+                    });
+                    this.emailAmmoDepletedTracked = true;
+                }
+            }
+        } else {
+            this.emailAmmoDepletedTracked = false; // Reset when not trying to shoot
         }
-        
-        if (callShoot && this.callCooldown <= 0 && this.callAmmo > 0) {
-            this.shootCall();
+
+        if (callShoot && this.callCooldown <= 0) {
+            if (this.callAmmo > 0) {
+                this.shootCall();
+            } else {
+                // Track ammo depleted event for call
+                if (typeof pendo !== 'undefined' && !this.callAmmoDepletedTracked) {
+                    const enemiesInView = window.game.level.enemies.filter(e =>
+                        e.active && Math.abs(e.x - this.x) < window.game.canvas.width
+                    ).length;
+
+                    pendo.track('ammo_depleted', {
+                        weapon_type: 'call',
+                        player_position_x: Math.floor(this.x),
+                        enemies_in_view: enemiesInView,
+                        time_since_last_ammo_pickup: this.lastAmmoPickupTime ? Math.floor((Date.now() - this.lastAmmoPickupTime) / 1000) : 0
+                    });
+                    this.callAmmoDepletedTracked = true;
+                }
+            }
+        } else {
+            this.callAmmoDepletedTracked = false; // Reset when not trying to shoot
         }
     }
 
@@ -168,6 +222,22 @@ export class Player {
         window.game.addProjectile(projectile);
         this.emailCooldown = 0.15; // 6.67 shots per second
         this.emailAmmo--;
+
+        // Track weapon fired event
+        if (typeof pendo !== 'undefined') {
+            // Count enemies in range (within 300 pixels)
+            const enemiesInRange = window.game.level.enemies.filter(e =>
+                e.active && Math.abs(e.x - this.x) < 300
+            ).length;
+
+            pendo.track('weapon_fired', {
+                weapon_type: 'email',
+                ammo_remaining: this.emailAmmo,
+                player_facing_direction: this.facingRight ? 'right' : 'left',
+                player_position_x: Math.floor(this.x),
+                enemies_in_range: enemiesInRange
+            });
+        }
     }
 
     shootCall() {
@@ -179,13 +249,41 @@ export class Player {
         window.game.addProjectile(projectile);
         this.callCooldown = 0.8; // 1.25 shots per second
         this.callAmmo--;
+
+        // Track weapon fired event
+        if (typeof pendo !== 'undefined') {
+            // Count enemies in range (within 300 pixels)
+            const enemiesInRange = window.game.level.enemies.filter(e =>
+                e.active && Math.abs(e.x - this.x) < 300
+            ).length;
+
+            pendo.track('weapon_fired', {
+                weapon_type: 'call',
+                ammo_remaining: this.callAmmo,
+                player_facing_direction: this.facingRight ? 'right' : 'left',
+                player_position_x: Math.floor(this.x),
+                enemies_in_range: enemiesInRange
+            });
+        }
     }
 
-    takeDamage(amount) {
+    takeDamage(amount, source = 'unknown') {
+        const healthBefore = this.health;
         this.health = Math.max(0, this.health - amount);
         this.damageFlash = 0.3;
         this.screenShake = 0.5;
-        
+
+        // Track player damaged event
+        if (typeof pendo !== 'undefined') {
+            pendo.track('player_damaged', {
+                damage_source: source,
+                damage_amount: amount,
+                health_remaining: this.health,
+                health_percentage: Math.floor((this.health / this.maxHealth) * 100),
+                player_position_x: Math.floor(this.x)
+            });
+        }
+
         if (this.health <= 0) {
             window.game.gameOver(false);
         }

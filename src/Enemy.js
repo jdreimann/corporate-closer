@@ -18,10 +18,31 @@ class Enemy {
     update(deltaTime, level, player, engine) {
         this.animationTime += deltaTime;
         this.damageFlash = Math.max(0, this.damageFlash - deltaTime);
-        
-        if (this.health <= 0) {
+
+        if (this.health <= 0 && this.active) {
             this.active = false;
             window.game.addScore(this.scoreValue);
+
+            // Track enemy defeated event
+            if (typeof pendo !== 'undefined') {
+                // Get enemy type name
+                let enemyType = 'unknown';
+                if (this instanceof MeetingDecline) enemyType = 'meeting_decline';
+                else if (this instanceof FinanceReview) enemyType = 'finance_review';
+                else if (this instanceof CriticalStakeholder) enemyType = 'critical_stakeholder';
+
+                // Increment defeat counter
+                if (!window.game.enemyDefeatCount) window.game.enemyDefeatCount = 0;
+                window.game.enemyDefeatCount++;
+
+                pendo.track('enemy_defeated', {
+                    enemy_type: enemyType,
+                    score_awarded: this.scoreValue,
+                    projectile_type_used: 'unknown', // Can't easily determine from here
+                    player_position_x: Math.floor(player.x),
+                    enemy_defeat_count: window.game.enemyDefeatCount
+                });
+            }
         }
     }
 
@@ -36,7 +57,12 @@ class Enemy {
 
     checkPlayerCollision(player) {
         if (GameEngine.checkCollision(this.getBounds(), player.getBounds())) {
-            player.takeDamage(this.contactDamage || 15);
+            let enemyType = 'enemy_contact';
+            if (this instanceof MeetingDecline) enemyType = 'meeting_decline_contact';
+            else if (this instanceof FinanceReview) enemyType = 'finance_review_contact';
+            else if (this instanceof CriticalStakeholder) enemyType = 'critical_stakeholder_contact';
+
+            player.takeDamage(this.contactDamage || 15, enemyType);
             return true;
         }
         return false;
@@ -62,11 +88,11 @@ class MeetingDecline extends Enemy {
         if (GameEngine.checkCollision(this.getBounds(), player.getBounds())) {
             // Reduce player health by 34% instead of fixed damage
             const damageAmount = Math.floor(player.maxHealth * 0.34);
-            player.takeDamage(damageAmount);
-            
+            player.takeDamage(damageAmount, 'declined_meeting');
+
             // Remove the declined calendar invite after collision
             this.active = false;
-            
+
             return true;
         }
         return false;
