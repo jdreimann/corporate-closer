@@ -18,10 +18,22 @@ class Enemy {
     update(deltaTime, level, player, engine) {
         this.animationTime += deltaTime;
         this.damageFlash = Math.max(0, this.damageFlash - deltaTime);
-        
-        if (this.health <= 0) {
+
+        if (this.health <= 0 && this.active) {
             this.active = false;
             window.game.addScore(this.scoreValue);
+
+            // Track enemy defeated event
+            if (typeof pendo !== 'undefined') {
+                pendo.track('enemy_defeated', {
+                    enemy_type: this.constructor.name,
+                    score_awarded: this.scoreValue,
+                    position_x: Math.round(this.x),
+                    position_y: Math.round(this.y),
+                    shots_to_kill: 0,
+                    weapon_used: 'unknown'
+                });
+            }
         }
     }
 
@@ -36,7 +48,19 @@ class Enemy {
 
     checkPlayerCollision(player) {
         if (GameEngine.checkCollision(this.getBounds(), player.getBounds())) {
-            player.takeDamage(this.contactDamage || 15);
+            player.takeDamage(this.contactDamage || 15, 'enemy_contact', this.constructor.name);
+
+            // Track player hit by enemy event
+            if (typeof pendo !== 'undefined') {
+                pendo.track('player_hit_by_enemy', {
+                    enemy_type: this.constructor.name,
+                    damage_amount: this.contactDamage || 15,
+                    health_remaining: player.health,
+                    position_x: Math.round(player.x),
+                    position_y: Math.round(player.y)
+                });
+            }
+
             return true;
         }
         return false;
@@ -62,11 +86,11 @@ class MeetingDecline extends Enemy {
         if (GameEngine.checkCollision(this.getBounds(), player.getBounds())) {
             // Reduce player health by 34% instead of fixed damage
             const damageAmount = Math.floor(player.maxHealth * 0.34);
-            player.takeDamage(damageAmount);
-            
+            player.takeDamage(damageAmount, 'meeting_decline', this.constructor.name);
+
             // Remove the declined calendar invite after collision
             this.active = false;
-            
+
             return true;
         }
         return false;
@@ -253,6 +277,18 @@ class CriticalStakeholder extends Enemy {
         if (this.health <= this.maxHealth * 0.5 && this.phase === 1) {
             this.phase = 2;
             this.speed = 60;
+
+            // Track boss phase transition event
+            if (typeof pendo !== 'undefined') {
+                const timeSinceStart = engine.gameTime || 0;
+                pendo.track('boss_phase_transition', {
+                    phase_number: 2,
+                    boss_health_remaining: this.health,
+                    player_health: player.health,
+                    time_in_boss_fight: Math.round(timeSinceStart),
+                    position_x: Math.round(this.x)
+                });
+            }
         }
         
         // Movement AI

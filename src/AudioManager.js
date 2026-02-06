@@ -518,10 +518,21 @@ class AudioManager {
 
     transitionToDramaticMode() {
         if (!this.ambientOscillators || this.ambientIsDramatic) return;
-        
+
         this.ambientIsDramatic = true;
         const time = this.audioContext.currentTime;
         const transitionDuration = 2.0; // 2 second transition
+
+        // Track audio dramatic mode triggered event
+        if (typeof pendo !== 'undefined') {
+            const boss = window.game?.level?.enemies?.find(e => e.constructor.name === 'CriticalStakeholder');
+            pendo.track('audio_dramatic_mode_triggered', {
+                position_x: Math.round(window.game?.player?.x || 0),
+                boss_health: boss?.health || 0,
+                player_health: window.game?.player?.health || 0,
+                transition_duration: transitionDuration
+            });
+        }
         
         // Dramatic mode changes:
         // 1. Faster chord progression (2 seconds instead of 4)

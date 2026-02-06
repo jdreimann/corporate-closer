@@ -168,18 +168,56 @@ class Level {
                         // Increase health by 50% up to 100% max
                         const healthIncrease = Math.floor(player.maxHealth * 0.5);
                         console.log('Healing player by:', healthIncrease, 'Current health:', player.health);
+                        const healthBefore = player.health;
                         player.heal(healthIncrease);
                         console.log('New health:', player.health);
+
+                        // Track collectible obtained health event
+                        if (typeof pendo !== 'undefined') {
+                            pendo.track('collectible_obtained_health', {
+                                health_before: healthBefore,
+                                health_after: player.health,
+                                health_gained: player.health - healthBefore,
+                                position_x: Math.round(collectible.x),
+                                position_y: Math.round(collectible.y),
+                                collectible_value: collectible.value
+                            });
+                        }
                         break;
                     case 'ammo':
                         // Increase call ammo (not email ammo)
                         console.log('Adding call ammo:', collectible.value, 'Current call ammo:', player.callAmmo);
+                        const ammoBefore = player.callAmmo;
                         player.callAmmo += collectible.value; // No maximum limit
                         console.log('New call ammo:', player.callAmmo);
+
+                        // Track collectible obtained ammo event
+                        if (typeof pendo !== 'undefined') {
+                            pendo.track('collectible_obtained_ammo', {
+                                ammo_before: ammoBefore,
+                                ammo_after: player.callAmmo,
+                                ammo_gained: collectible.value,
+                                position_x: Math.round(collectible.x),
+                                position_y: Math.round(collectible.y),
+                                collectible_value: collectible.value
+                            });
+                        }
                         break;
                     case 'bonus':
                         console.log('Adding score:', collectible.value);
+                        const scoreBefore = window.game.score;
                         window.game.addScore(collectible.value);
+
+                        // Track collectible obtained bonus event
+                        if (typeof pendo !== 'undefined') {
+                            pendo.track('collectible_obtained_bonus', {
+                                score_before: scoreBefore,
+                                score_after: window.game.score,
+                                bonus_value: collectible.value,
+                                position_x: Math.round(collectible.x),
+                                position_y: Math.round(collectible.y)
+                            });
+                        }
                         break;
                 }
             }
@@ -213,17 +251,30 @@ class Level {
     spawnCalendarEnemy(engine) {
         // Spawn position: just out of view to the right of the camera
         const spawnX = engine.camera.x + engine.canvas.width + 50;
-        
+
         // Random elevation across bottom 2/3rds of game area (250-520) - increased minimum
         const minY = 250;
         const maxY = 520;
         const spawnY = minY + Math.random() * (maxY - minY);
-        
+
         // Create new calendar enemy
         const newEnemy = new MeetingDecline(spawnX, spawnY);
         this.enemies.push(newEnemy);
-        
+
         console.log('Spawned calendar enemy at:', spawnX, spawnY);
+
+        // Track calendar enemy spawned event
+        if (typeof pendo !== 'undefined') {
+            const activeEnemies = this.enemies.filter(e => e.active).length;
+            const playerX = window.game?.player?.x || 0;
+            pendo.track('calendar_enemy_spawned', {
+                spawn_position_x: Math.round(spawnX),
+                spawn_position_y: Math.round(spawnY),
+                enemies_active: activeEnemies,
+                time_since_last_spawn: this.lastCalendarSpawn,
+                player_position_x: Math.round(playerX)
+            });
+        }
     }
 
     draw(engine) {
