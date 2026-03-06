@@ -22,6 +22,16 @@ class Enemy {
         if (this.health <= 0) {
             this.active = false;
             window.game.addScore(this.scoreValue);
+
+            // Pendo Track: enemy_defeated
+            if (typeof pendo !== 'undefined') {
+                pendo.track('enemy_defeated', {
+                    enemyType: this.constructor.name,
+                    scoreAwarded: this.scoreValue,
+                    playerXPosition: player.x,
+                    playerHealth: player.health
+                });
+            }
         }
     }
 
@@ -253,6 +263,15 @@ class CriticalStakeholder extends Enemy {
         if (this.health <= this.maxHealth * 0.5 && this.phase === 1) {
             this.phase = 2;
             this.speed = 60;
+
+            // Pendo Track: boss_phase_transition
+            if (typeof pendo !== 'undefined') {
+                pendo.track('boss_phase_transition', {
+                    playerHealth: player.health,
+                    currentScore: window.game.score,
+                    bossHealthRemaining: this.health
+                });
+            }
         }
         
         // Movement AI

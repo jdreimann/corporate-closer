@@ -162,7 +162,8 @@ class Level {
                 
                 console.log('Collectible collision detected:', collectible.type, collectible.value);
                 collectible.collected = true;
-                
+                const healthBefore = player.health;
+
                 switch (collectible.type) {
                     case 'health':
                         // Increase health by 50% up to 100% max
@@ -181,6 +182,17 @@ class Level {
                         console.log('Adding score:', collectible.value);
                         window.game.addScore(collectible.value);
                         break;
+                }
+
+                // Pendo Track: collectible_picked_up
+                if (typeof pendo !== 'undefined') {
+                    pendo.track('collectible_picked_up', {
+                        collectibleType: collectible.type,
+                        value: collectible.value,
+                        playerXPosition: player.x,
+                        playerHealthBefore: healthBefore,
+                        playerHealthAfter: player.health
+                    });
                 }
             }
         }

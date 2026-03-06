@@ -187,6 +187,19 @@ export class Player {
         this.screenShake = 0.5;
         
         if (this.health <= 0) {
+            // Pendo Track: game_defeat
+            if (typeof pendo !== 'undefined') {
+                const levelWidth = window.game.level ? window.game.level.width : 4800;
+                const boss = window.game.level ? window.game.level.enemies.find(e => e.constructor.name === 'CriticalStakeholder') : null;
+                pendo.track('game_defeat', {
+                    finalScore: window.game.score,
+                    playerXPosition: this.x,
+                    levelProgressPercent: Math.round((this.x / levelWidth) * 100),
+                    bossEncountered: window.game.bossFirstSeen || false,
+                    lastDamageAmount: amount
+                });
+            }
+
             window.game.gameOver(false);
         }
     }
