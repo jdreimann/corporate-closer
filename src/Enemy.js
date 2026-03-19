@@ -46,7 +46,20 @@ class Enemy {
 
     checkPlayerCollision(player) {
         if (GameEngine.checkCollision(this.getBounds(), player.getBounds())) {
-            player.takeDamage(this.contactDamage || 15);
+            const damageAmount = this.contactDamage || 15;
+            player.takeDamage(damageAmount);
+
+            // Pendo Track: player_damaged
+            if (typeof pendo !== 'undefined') {
+                pendo.track('player_damaged', {
+                    damageAmount: damageAmount,
+                    healthRemaining: player.health,
+                    healthPercent: Math.round((player.health / player.maxHealth) * 100),
+                    damageSource: this.constructor.name,
+                    playerX: player.x
+                });
+            }
+
             return true;
         }
         return false;
@@ -73,10 +86,21 @@ class MeetingDecline extends Enemy {
             // Reduce player health by 34% instead of fixed damage
             const damageAmount = Math.floor(player.maxHealth * 0.34);
             player.takeDamage(damageAmount);
-            
+
+            // Pendo Track: player_damaged
+            if (typeof pendo !== 'undefined') {
+                pendo.track('player_damaged', {
+                    damageAmount: damageAmount,
+                    healthRemaining: player.health,
+                    healthPercent: Math.round((player.health / player.maxHealth) * 100),
+                    damageSource: 'MeetingDecline',
+                    playerX: player.x
+                });
+            }
+
             // Remove the declined calendar invite after collision
             this.active = false;
-            
+
             return true;
         }
         return false;

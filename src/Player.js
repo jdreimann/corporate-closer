@@ -168,6 +168,16 @@ export class Player {
         window.game.addProjectile(projectile);
         this.emailCooldown = 0.15; // 6.67 shots per second
         this.emailAmmo--;
+
+        // Pendo Track: weapon_fired
+        if (typeof pendo !== 'undefined') {
+            pendo.track('weapon_fired', {
+                weaponType: 'email',
+                ammoRemaining: this.emailAmmo,
+                playerX: this.x,
+                facingDirection: this.facingRight ? 'right' : 'left'
+            });
+        }
     }
 
     shootCall() {
@@ -179,6 +189,16 @@ export class Player {
         window.game.addProjectile(projectile);
         this.callCooldown = 0.8; // 1.25 shots per second
         this.callAmmo--;
+
+        // Pendo Track: weapon_fired
+        if (typeof pendo !== 'undefined') {
+            pendo.track('weapon_fired', {
+                weaponType: 'call',
+                ammoRemaining: this.callAmmo,
+                playerX: this.x,
+                facingDirection: this.facingRight ? 'right' : 'left'
+            });
+        }
     }
 
     takeDamage(amount) {

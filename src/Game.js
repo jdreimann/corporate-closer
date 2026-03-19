@@ -100,6 +100,18 @@ export class Game {
             if (projectile.checkCollision(this.player)) {
                 this.player.takeDamage(projectile.damage);
                 this.audioManager.playSound('playerHit');
+
+                // Pendo Track: player_damaged
+                if (typeof pendo !== 'undefined') {
+                    pendo.track('player_damaged', {
+                        damageAmount: projectile.damage,
+                        healthRemaining: this.player.health,
+                        healthPercent: Math.round((this.player.health / this.player.maxHealth) * 100),
+                        damageSource: 'EnemyProjectile',
+                        playerX: this.player.x
+                    });
+                }
+
                 projectile.hit();
             }
             
@@ -190,7 +202,24 @@ export class Game {
     }
 
     addScore(points) {
+        const previousScore = this.score;
         this.score += points;
+
+        // Pendo Track: score_milestone_reached
+        if (typeof pendo !== 'undefined') {
+            const milestones = [100000, 500000, 1000000, 5000000];
+            for (const milestone of milestones) {
+                if (previousScore < milestone && this.score >= milestone) {
+                    const levelWidth = this.level ? this.level.width : 4800;
+                    pendo.track('score_milestone_reached', {
+                        milestone: milestone,
+                        currentScore: this.score,
+                        playerX: this.player.x,
+                        levelProgressPercent: Math.round((this.player.x / levelWidth) * 100)
+                    });
+                }
+            }
+        }
     }
 
     gameOver(victory) {
