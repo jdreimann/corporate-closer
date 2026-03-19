@@ -298,6 +298,13 @@ export class Game {
     }
 }
 
+// Initialize Pendo with anonymous visitor
+pendo.initialize({
+    visitor: {
+        id: ''
+    }
+});
+
 // Initialize game when page loads
 let game;
 document.addEventListener('DOMContentLoaded', () => {
