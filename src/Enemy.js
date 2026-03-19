@@ -21,6 +21,16 @@ class Enemy {
         
         if (this.health <= 0) {
             this.active = false;
+
+            if (typeof pendo !== 'undefined') {
+                pendo.track('enemy_defeated', {
+                    enemyType: this.constructor.name,
+                    scoreAwarded: this.scoreValue,
+                    playerHealth: window.game.player.health,
+                    playerX: Math.round(window.game.player.x)
+                });
+            }
+
             window.game.addScore(this.scoreValue);
         }
     }
@@ -36,7 +46,17 @@ class Enemy {
 
     checkPlayerCollision(player) {
         if (GameEngine.checkCollision(this.getBounds(), player.getBounds())) {
-            player.takeDamage(this.contactDamage || 15);
+            const damage = this.contactDamage || 15;
+            if (typeof pendo !== 'undefined') {
+                pendo.track('player_damaged', {
+                    damageAmount: damage,
+                    healthRemaining: Math.max(0, player.health - damage),
+                    healthPercent: Math.round(Math.max(0, player.health - damage) / player.maxHealth * 100),
+                    damageSource: this.constructor.name,
+                    playerX: Math.round(player.x)
+                });
+            }
+            player.takeDamage(damage);
             return true;
         }
         return false;
@@ -62,11 +82,22 @@ class MeetingDecline extends Enemy {
         if (GameEngine.checkCollision(this.getBounds(), player.getBounds())) {
             // Reduce player health by 34% instead of fixed damage
             const damageAmount = Math.floor(player.maxHealth * 0.34);
+
+            if (typeof pendo !== 'undefined') {
+                pendo.track('player_damaged', {
+                    damageAmount: damageAmount,
+                    healthRemaining: Math.max(0, player.health - damageAmount),
+                    healthPercent: Math.round(Math.max(0, player.health - damageAmount) / player.maxHealth * 100),
+                    damageSource: 'MeetingDecline',
+                    playerX: Math.round(player.x)
+                });
+            }
+
             player.takeDamage(damageAmount);
-            
+
             // Remove the declined calendar invite after collision
             this.active = false;
-            
+
             return true;
         }
         return false;
@@ -253,6 +284,15 @@ class CriticalStakeholder extends Enemy {
         if (this.health <= this.maxHealth * 0.5 && this.phase === 1) {
             this.phase = 2;
             this.speed = 60;
+
+            if (typeof pendo !== 'undefined') {
+                pendo.track('boss_phase_changed', {
+                    newPhase: 2,
+                    bossHealthPercent: Math.round(this.health / this.maxHealth * 100),
+                    playerHealth: window.game.player.health,
+                    playerScore: window.game.score
+                });
+            }
         }
         
         // Movement AI

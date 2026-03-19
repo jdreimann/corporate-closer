@@ -90,6 +90,15 @@ export class Game {
             
             // Check collision with player
             if (projectile.checkCollision(this.player)) {
+                if (typeof pendo !== 'undefined') {
+                    pendo.track('player_damaged', {
+                        damageAmount: projectile.damage,
+                        healthRemaining: Math.max(0, this.player.health - projectile.damage),
+                        healthPercent: Math.round(Math.max(0, this.player.health - projectile.damage) / this.player.maxHealth * 100),
+                        damageSource: 'projectile',
+                        playerX: Math.round(this.player.x)
+                    });
+                }
                 this.player.takeDamage(projectile.damage);
                 this.audioManager.playSound('playerHit');
                 projectile.hit();
@@ -110,6 +119,16 @@ export class Game {
                     
                     // Check if Critical Stakeholder was defeated
                     if (enemy instanceof CriticalStakeholder && enemy.health <= 0) {
+                        if (typeof pendo !== 'undefined') {
+                            pendo.track('boss_defeated', {
+                                scoreAwarded: enemy.scoreValue,
+                                playerHealthRemaining: this.player.health,
+                                bossPhaseAtDefeat: enemy.phase,
+                                emailAmmoRemaining: this.player.emailAmmo,
+                                callAmmoRemaining: this.player.callAmmo
+                            });
+                        }
+
                         // Reset ambient track to normal mode after boss defeat
                         setTimeout(() => {
                             this.audioManager.resetAmbientTrack();
@@ -134,11 +153,24 @@ export class Game {
         if (this.player.x > this.level.width - 100) {
             // Check if boss was defeated for additional bonus
             const boss = this.level.enemies.find(e => e instanceof CriticalStakeholder);
-            if (boss && !boss.active) {
+            const bossDefeated = boss && !boss.active;
+            if (bossDefeated) {
                 // Boss was defeated - add massive bonus
                 this.addScore(1000000); // Additional 1 million bonus for defeating boss
                 console.log('Boss defeated bonus: +1,000,000');
             }
+
+            if (typeof pendo !== 'undefined') {
+                pendo.track('victory_deal_closed', {
+                    finalScore: this.score,
+                    bossDefeated: !!bossDefeated,
+                    bossDefeatBonus: bossDefeated ? 1000000 : 0,
+                    healthRemaining: this.player.health,
+                    emailAmmoRemaining: this.player.emailAmmo,
+                    callAmmoRemaining: this.player.callAmmo
+                });
+            }
+
             this.gameOver(true);
         }
     }
@@ -158,7 +190,23 @@ export class Game {
     }
 
     addScore(points) {
+        const previousScore = this.score;
         this.score += points;
+
+        // Check for score milestones
+        const milestones = [100000, 500000, 1000000, 5000000];
+        for (const milestone of milestones) {
+            if (previousScore < milestone && this.score >= milestone) {
+                if (typeof pendo !== 'undefined') {
+                    pendo.track('score_milestone_reached', {
+                        milestone: milestone,
+                        currentScore: this.score,
+                        playerX: Math.round(this.player.x),
+                        levelProgressPercent: Math.round(this.player.x / this.level.width * 100)
+                    });
+                }
+            }
+        }
     }
 
     gameOver(victory) {
@@ -179,6 +227,17 @@ export class Game {
     }
 
     restart() {
+        const previousOutcome = this.gameState === 'gameOver' ? (this.gameOverTitle.textContent === 'Deal Closed!' ? 'victory' : 'defeat') : 'unknown';
+        const previousScore = this.score;
+
+        if (typeof pendo !== 'undefined') {
+            pendo.track('game_restarted', {
+                previousOutcome: previousOutcome,
+                previousScore: previousScore,
+                sessionPlayCount: (window._pendoSessionPlayCount = (window._pendoSessionPlayCount || 0) + 1)
+            });
+        }
+
         // Reset game state
         this.gameState = 'playing';
         this.score = 0;
@@ -245,6 +304,15 @@ export class Game {
                 this.bossFirstSeen = true;
                 // Trigger dramatic audio transition
                 this.audioManager.transitionToDramaticMode();
+
+                if (typeof pendo !== 'undefined') {
+                    pendo.track('boss_encountered', {
+                        playerScore: this.score,
+                        playerHealth: this.player.health,
+                        emailAmmoRemaining: this.player.emailAmmo,
+                        callAmmoRemaining: this.player.callAmmo
+                    });
+                }
             }
             
             // Only show health bar if boss has been seen
@@ -310,5 +378,15 @@ document.addEventListener('DOMContentLoaded', () => {
         splashScreen.classList.add('hidden');
         gameContainer.classList.remove('hidden');
         window.game = new Game();
+
+        if (typeof pendo !== 'undefined') {
+            pendo.track('game_started', {
+                timestamp: new Date().toISOString(),
+                sessionId: window.game ? String(Date.now()) : 'unknown',
+                userAgent: navigator.userAgent,
+                screenWidth: window.innerWidth,
+                screenHeight: window.innerHeight
+            });
+        }
     });
 });

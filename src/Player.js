@@ -1,5 +1,6 @@
 import { GameEngine } from './GameEngine.js';
 import { EmailProjectile, CallProjectile } from './Projectile.js';
+import { CriticalStakeholder } from './Enemy.js';
 
 export class Player {
     constructor(x, y) {
@@ -168,6 +169,15 @@ export class Player {
         window.game.addProjectile(projectile);
         this.emailCooldown = 0.15; // 6.67 shots per second
         this.emailAmmo--;
+
+        if (typeof pendo !== 'undefined') {
+            pendo.track('weapon_fired', {
+                weaponType: 'email',
+                ammoRemaining: this.emailAmmo,
+                playerX: Math.round(this.x),
+                facingDirection: this.facingRight ? 'right' : 'left'
+            });
+        }
     }
 
     shootCall() {
@@ -179,14 +189,34 @@ export class Player {
         window.game.addProjectile(projectile);
         this.callCooldown = 0.8; // 1.25 shots per second
         this.callAmmo--;
+
+        if (typeof pendo !== 'undefined') {
+            pendo.track('weapon_fired', {
+                weaponType: 'call',
+                ammoRemaining: this.callAmmo,
+                playerX: Math.round(this.x),
+                facingDirection: this.facingRight ? 'right' : 'left'
+            });
+        }
     }
 
     takeDamage(amount) {
         this.health = Math.max(0, this.health - amount);
         this.damageFlash = 0.3;
         this.screenShake = 0.5;
-        
+
         if (this.health <= 0) {
+            if (typeof pendo !== 'undefined') {
+                const game = window.game;
+                const boss = game.level.enemies.find(e => e instanceof CriticalStakeholder);
+                pendo.track('defeat_deal_lost', {
+                    finalScore: game.score,
+                    playerX: Math.round(this.x),
+                    levelProgressPercent: Math.round(this.x / game.level.width * 100),
+                    bossEncountered: game.bossFirstSeen,
+                    bossHealthRemaining: boss ? boss.health : 0
+                });
+            }
             window.game.gameOver(false);
         }
     }
