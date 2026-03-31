@@ -187,6 +187,11 @@ export class Game {
         const saveScoreBtn = document.getElementById('saveScoreBtn');
 
         if (this.hallOfFame.isHighScore(this.score)) {
+            pendo.track('high_score_achieved', {
+                score: this.score,
+                rank: this.hallOfFame.getRank(this.score),
+                victory: victory
+            });
             nameEntrySection.classList.remove('hidden');
             gameOverScores.classList.add('hidden');
             playerNameInput.value = '';
@@ -195,6 +200,12 @@ export class Game {
             const handleSave = () => {
                 const name = playerNameInput.value.trim() || 'Anonymous';
                 this.hallOfFame.saveScore(name, this.score, victory);
+                pendo.track('score_saved', {
+                    score: this.score,
+                    name: name,
+                    rank: this.hallOfFame.getRank(this.score),
+                    victory: victory
+                });
                 this.scoreSaved = true;
                 nameEntrySection.classList.add('hidden');
                 this.showGameOverScores();
@@ -388,6 +399,7 @@ document.addEventListener('DOMContentLoaded', () => {
         splashScreen.classList.add('hidden');
         hallOfFameScreen.classList.remove('hidden');
         renderHallOfFame();
+        pendo.track('hall_of_fame_viewed');
     });
 
     closeHallOfFameBtn.addEventListener('click', () => {
