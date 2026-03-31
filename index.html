@@ -66,6 +66,17 @@
             </div>
             
             <button id="startGameBtn" class="start-button">Start Your Workday</button>
+            <button id="viewHallOfFameBtn" class="hall-of-fame-button">Hall of Fame</button>
+        </div>
+    </div>
+
+    <div id="hallOfFameScreen" class="hall-of-fame-screen hidden">
+        <div class="hall-of-fame-content">
+            <h2>Hall of Fame</h2>
+            <div id="hallOfFameList" class="hall-of-fame-list">
+                <p class="no-scores">No scores yet. Be the first to close a deal!</p>
+            </div>
+            <button id="closeHallOfFameBtn" class="start-button">Back</button>
         </div>
     </div>
 
@@ -125,6 +136,17 @@
                 <h2 id="gameOverTitle">Deal Closed!</h2>
                 <p id="gameOverMessage">Congratulations! You've successfully navigated the corporate sales process.</p>
                 <p>Final Score: <span id="finalScore">0</span></p>
+                <div id="nameEntrySection" class="name-entry hidden">
+                    <p class="new-high-score">New High Score!</p>
+                    <div class="name-input-row">
+                        <input type="text" id="playerNameInput" maxlength="20" placeholder="Enter your name" class="name-input" />
+                        <button id="saveScoreBtn" class="save-score-button">Save</button>
+                    </div>
+                </div>
+                <div id="gameOverScores" class="game-over-scores hidden">
+                    <h3>Top Scores</h3>
+                    <div id="gameOverScoreList"></div>
+                </div>
                 <button onclick="game.restart()">Start New Quarter</button>
             </div>
         </div>

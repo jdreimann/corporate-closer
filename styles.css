@@ -360,6 +360,227 @@ body {
     transform: translateY(0);
 }
 
+/* Hall of Fame Button on Splash */
+.hall-of-fame-button {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 15px rgba(96, 165, 250, 0.3);
+}
+
+.hall-of-fame-button:hover {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(96, 165, 250, 0.4);
+}
+
+/* Hall of Fame Screen */
+.hall-of-fame-screen {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+}
+
+.hall-of-fame-content {
+    max-width: 600px;
+    width: 90%;
+    padding: 30px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+}
+
+.hall-of-fame-content h2 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+    color: #fbbf24;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.hall-of-fame-list {
+    margin-bottom: 20px;
+}
+
+.no-scores {
+    color: #94a3b8;
+    font-style: italic;
+    padding: 20px;
+}
+
+.hof-row {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    margin-bottom: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    gap: 10px;
+}
+
+.hof-row:first-child {
+    background: rgba(251, 191, 36, 0.1);
+    border-color: rgba(251, 191, 36, 0.3);
+}
+
+.hof-rank {
+    width: 40px;
+    font-weight: bold;
+    color: #fbbf24;
+    font-size: 1.1rem;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.hof-name {
+    flex: 1;
+    text-align: left;
+    color: #e2e8f0;
+    font-weight: 600;
+}
+
+.hof-score {
+    color: #34d399;
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+.hof-icon {
+    width: 24px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.hof-date {
+    color: #64748b;
+    font-size: 0.8rem;
+    width: 80px;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+/* Game Over - Name Entry */
+.name-entry {
+    margin: 15px 0;
+}
+
+.new-high-score {
+    color: #fbbf24 !important;
+    font-weight: bold;
+    font-size: 1.3rem !important;
+    margin-bottom: 10px !important;
+}
+
+.name-input-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.name-input {
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 1rem;
+    width: 200px;
+    outline: none;
+}
+
+.name-input:focus {
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.3);
+}
+
+.name-input::placeholder {
+    color: #64748b;
+}
+
+.save-score-button {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: #1e3a8a;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.save-score-button:hover {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    transform: translateY(-1px);
+}
+
+/* Game Over - Score List */
+.game-over-scores {
+    margin: 15px 0;
+    text-align: left;
+}
+
+.game-over-scores h3 {
+    text-align: center;
+    color: #94a3b8;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.score-row {
+    display: flex;
+    align-items: center;
+    padding: 6px 10px;
+    gap: 8px;
+    border-radius: 4px;
+}
+
+.score-row.highlight {
+    background: rgba(251, 191, 36, 0.15);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.score-rank {
+    width: 30px;
+    color: #64748b;
+    font-weight: bold;
+    font-size: 0.85rem;
+}
+
+.score-name {
+    flex: 1;
+    color: #e2e8f0;
+    font-size: 0.9rem;
+}
+
+.score-value {
+    color: #34d399;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.score-icon {
+    width: 20px;
+    text-align: center;
+}
+
 .hidden {
     display: none !important;
 }

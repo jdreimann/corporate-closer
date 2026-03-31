@@ -5,22 +5,25 @@ import { Projectile, EmailProjectile, CallProjectile, EnemyProjectile } from './
 import { Enemy, MeetingDecline, FinanceReview, CriticalStakeholder } from './Enemy.js';
 import { Level } from './Level.js';
 import { AudioManager } from './AudioManager.js';
+import { HallOfFame } from './HallOfFame.js';
 
 export class Game {
     constructor() {
         this.canvas = document.getElementById('gameCanvas');
         this.engine = new GameEngine(this.canvas);
         this.audioManager = new AudioManager();
-        
+        this.hallOfFame = new HallOfFame();
+
         this.player = new Player(100, 400);
         this.level = new Level();
         this.projectiles = [];
         this.enemyProjectiles = [];
-        
+
         this.score = 0;
         this.gameState = 'playing'; // 'playing', 'gameOver', 'victory'
         this.bossFirstSeen = false;
-        
+        this.scoreSaved = false;
+
         this.setupUI();
         this.start();
     }
@@ -176,6 +179,68 @@ export class Game {
         
         this.finalScore.textContent = `$${this.score.toLocaleString()}`;
         this.gameOverScreen.classList.remove('hidden');
+
+        // Show name entry if it's a high score
+        const nameEntrySection = document.getElementById('nameEntrySection');
+        const gameOverScores = document.getElementById('gameOverScores');
+        const playerNameInput = document.getElementById('playerNameInput');
+        const saveScoreBtn = document.getElementById('saveScoreBtn');
+
+        if (this.hallOfFame.isHighScore(this.score)) {
+            nameEntrySection.classList.remove('hidden');
+            gameOverScores.classList.add('hidden');
+            playerNameInput.value = '';
+            playerNameInput.focus();
+
+            const handleSave = () => {
+                const name = playerNameInput.value.trim() || 'Anonymous';
+                this.hallOfFame.saveScore(name, this.score, victory);
+                this.scoreSaved = true;
+                nameEntrySection.classList.add('hidden');
+                this.showGameOverScores();
+                saveScoreBtn.removeEventListener('click', handleSave);
+                playerNameInput.removeEventListener('keydown', handleEnter);
+            };
+
+            const handleEnter = (e) => {
+                if (e.key === 'Enter') handleSave();
+            };
+
+            saveScoreBtn.addEventListener('click', handleSave);
+            playerNameInput.addEventListener('keydown', handleEnter);
+        } else {
+            nameEntrySection.classList.add('hidden');
+            this.showGameOverScores();
+        }
+    }
+
+    showGameOverScores() {
+        const gameOverScores = document.getElementById('gameOverScores');
+        const gameOverScoreList = document.getElementById('gameOverScoreList');
+        const scores = this.hallOfFame.getScores();
+
+        if (scores.length === 0) {
+            gameOverScores.classList.add('hidden');
+            return;
+        }
+
+        gameOverScores.classList.remove('hidden');
+        gameOverScoreList.innerHTML = scores.map((entry, i) => {
+            const date = new Date(entry.date).toLocaleDateString();
+            const icon = entry.victory ? '&#x2705;' : '&#x274C;';
+            return `<div class="score-row${entry.score === this.score && this.scoreSaved ? ' highlight' : ''}">
+                <span class="score-rank">#${i + 1}</span>
+                <span class="score-name">${this.escapeHtml(entry.name)}</span>
+                <span class="score-value">$${entry.score.toLocaleString()}</span>
+                <span class="score-icon">${icon}</span>
+            </div>`;
+        }).join('');
+    }
+
+    escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
     }
 
     restart() {
@@ -183,6 +248,7 @@ export class Game {
         this.gameState = 'playing';
         this.score = 0;
         this.bossFirstSeen = false;
+        this.scoreSaved = false;
         
         // Reset player
         this.player = new Player(100, 400);
@@ -311,4 +377,50 @@ document.addEventListener('DOMContentLoaded', () => {
         gameContainer.classList.remove('hidden');
         window.game = new Game();
     });
+
+    // Hall of Fame from splash screen
+    const hallOfFame = new HallOfFame();
+    const viewHallOfFameBtn = document.getElementById('viewHallOfFameBtn');
+    const hallOfFameScreen = document.getElementById('hallOfFameScreen');
+    const closeHallOfFameBtn = document.getElementById('closeHallOfFameBtn');
+
+    viewHallOfFameBtn.addEventListener('click', () => {
+        splashScreen.classList.add('hidden');
+        hallOfFameScreen.classList.remove('hidden');
+        renderHallOfFame();
+    });
+
+    closeHallOfFameBtn.addEventListener('click', () => {
+        hallOfFameScreen.classList.add('hidden');
+        splashScreen.classList.remove('hidden');
+    });
+
+    function renderHallOfFame() {
+        const list = document.getElementById('hallOfFameList');
+        const scores = hallOfFame.getScores();
+
+        if (scores.length === 0) {
+            list.innerHTML = '<p class="no-scores">No scores yet. Be the first to close a deal!</p>';
+            return;
+        }
+
+        list.innerHTML = scores.map((entry, i) => {
+            const date = new Date(entry.date).toLocaleDateString();
+            const icon = entry.victory ? '&#x2705;' : '&#x274C;';
+            const medal = i === 0 ? '&#x1F947;' : i === 1 ? '&#x1F948;' : i === 2 ? '&#x1F949;' : '';
+            return `<div class="hof-row">
+                <span class="hof-rank">${medal || '#' + (i + 1)}</span>
+                <span class="hof-name">${escapeHtml(entry.name)}</span>
+                <span class="hof-score">$${entry.score.toLocaleString()}</span>
+                <span class="hof-icon">${icon}</span>
+                <span class="hof-date">${date}</span>
+            </div>`;
+        }).join('');
+    }
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
 });
