@@ -22,6 +22,16 @@ class Enemy {
         if (this.health <= 0) {
             this.active = false;
             window.game.addScore(this.scoreValue);
+            window.game.enemiesDefeatedCount++;
+
+            if (typeof pendo !== 'undefined') {
+                pendo.track('enemy_defeated', {
+                    enemy_type: this.constructor.name,
+                    score_value: this.scoreValue,
+                    player_health_at_kill: player.health,
+                    player_x_position: Math.round(player.x)
+                });
+            }
         }
     }
 
@@ -36,7 +46,22 @@ class Enemy {
 
     checkPlayerCollision(player) {
         if (GameEngine.checkCollision(this.getBounds(), player.getBounds())) {
-            player.takeDamage(this.contactDamage || 15);
+            const damageAmount = this.contactDamage || 15;
+            const healthBefore = player.health;
+            player.takeDamage(damageAmount);
+
+            if (typeof pendo !== 'undefined') {
+                pendo.track('player_damage_taken', {
+                    damage_amount: damageAmount,
+                    damage_source_type: 'contact',
+                    health_before: healthBefore,
+                    health_after: player.health,
+                    health_percent_remaining: Math.round((player.health / player.maxHealth) * 100),
+                    player_x_position: Math.round(player.x),
+                    is_fatal: player.health <= 0
+                });
+            }
+
             return true;
         }
         return false;
@@ -62,11 +87,31 @@ class MeetingDecline extends Enemy {
         if (GameEngine.checkCollision(this.getBounds(), player.getBounds())) {
             // Reduce player health by 34% instead of fixed damage
             const damageAmount = Math.floor(player.maxHealth * 0.34);
+            const healthBefore = player.health;
             player.takeDamage(damageAmount);
-            
+
+            if (typeof pendo !== 'undefined') {
+                pendo.track('meeting_decline_contact_damage', {
+                    damage_dealt: damageAmount,
+                    player_health_before: healthBefore,
+                    player_health_after: player.health,
+                    player_x_position: Math.round(player.x),
+                    is_fatal: player.health <= 0
+                });
+                pendo.track('player_damage_taken', {
+                    damage_amount: damageAmount,
+                    damage_source_type: 'contact',
+                    health_before: healthBefore,
+                    health_after: player.health,
+                    health_percent_remaining: Math.round((player.health / player.maxHealth) * 100),
+                    player_x_position: Math.round(player.x),
+                    is_fatal: player.health <= 0
+                });
+            }
+
             // Remove the declined calendar invite after collision
             this.active = false;
-            
+
             return true;
         }
         return false;
@@ -245,6 +290,15 @@ class CriticalStakeholder extends Enemy {
         
         if (!this.isActivated && cameraX > eightPMPosition - canvasWidth) {
             this.isActivated = true;
+
+            if (typeof pendo !== 'undefined') {
+                pendo.track('boss_activated', {
+                    player_x_position: Math.round(player.x),
+                    player_health: player.health,
+                    current_score: window.game.score,
+                    session_duration: Math.round((Date.now() - window.game.sessionStartTime) / 1000)
+                });
+            }
         }
         
         // Only update boss behavior if activated
@@ -253,6 +307,17 @@ class CriticalStakeholder extends Enemy {
         if (this.health <= this.maxHealth * 0.5 && this.phase === 1) {
             this.phase = 2;
             this.speed = 60;
+
+            if (typeof pendo !== 'undefined') {
+                pendo.track('boss_phase_changed', {
+                    new_phase: 2,
+                    boss_health_remaining: this.health,
+                    boss_health_percent: Math.round((this.health / this.maxHealth) * 100),
+                    player_health: player.health,
+                    player_health_percent: Math.round((player.health / player.maxHealth) * 100),
+                    time_in_boss_fight: window.game.bossEncounterTime ? Math.round((Date.now() - window.game.bossEncounterTime) / 1000) : 0
+                });
+            }
         }
         
         // Movement AI

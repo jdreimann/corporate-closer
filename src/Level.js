@@ -162,7 +162,10 @@ class Level {
                 
                 console.log('Collectible collision detected:', collectible.type, collectible.value);
                 collectible.collected = true;
-                
+
+                const healthBefore = player.health;
+                const ammoBefore = player.callAmmo;
+
                 switch (collectible.type) {
                     case 'health':
                         // Increase health by 50% up to 100% max
@@ -182,6 +185,19 @@ class Level {
                         window.game.addScore(collectible.value);
                         break;
                 }
+
+                if (typeof pendo !== 'undefined') {
+                    pendo.track('collectible_picked_up', {
+                        collectible_type: collectible.type,
+                        collectible_value: collectible.value,
+                        collectible_x_position: Math.round(collectible.x),
+                        player_health_before: healthBefore,
+                        player_health_after: player.health,
+                        player_ammo_before: ammoBefore,
+                        player_ammo_after: player.callAmmo,
+                        current_score: window.game.score
+                    });
+                }
             }
         }
     }
@@ -194,6 +210,15 @@ class Level {
         if (this.calendarGenerationActive && cameraX > this.eightPMPosition - canvasWidth) {
             this.calendarGenerationActive = false;
             console.log('Calendar generation stopped - 8PM marker in view');
+
+            if (typeof pendo !== 'undefined') {
+                const player = window.game.player;
+                pendo.track('calendar_generation_stopped', {
+                    player_health: player.health,
+                    current_score: window.game.score,
+                    session_duration: Math.round((Date.now() - window.game.sessionStartTime) / 1000)
+                });
+            }
         }
         
         // Generate new calendar enemies at random intervals
