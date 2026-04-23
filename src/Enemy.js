@@ -22,6 +22,20 @@ class Enemy {
         if (this.health <= 0) {
             this.active = false;
             window.game.addScore(this.scoreValue);
+
+            // Pendo Track Event: enemy_defeated
+            if (typeof pendo !== 'undefined') {
+                pendo.track('enemy_defeated', {
+                    enemy_type: this.constructor.name,
+                    enemy_score_value: this.scoreValue,
+                    player_health: player ? player.health : null,
+                    player_x_position: player ? Math.round(player.x) : null,
+                    weapon_used: 'projectile'
+                });
+            }
+            if (window.game) {
+                window.game.enemiesDefeatedCount++;
+            }
         }
     }
 
@@ -36,7 +50,8 @@ class Enemy {
 
     checkPlayerCollision(player) {
         if (GameEngine.checkCollision(this.getBounds(), player.getBounds())) {
-            player.takeDamage(this.contactDamage || 15);
+            player._lastContactEnemyType = this.constructor.name;
+            player.takeDamage(this.contactDamage || 15, 'contact');
             return true;
         }
         return false;
@@ -62,11 +77,12 @@ class MeetingDecline extends Enemy {
         if (GameEngine.checkCollision(this.getBounds(), player.getBounds())) {
             // Reduce player health by 34% instead of fixed damage
             const damageAmount = Math.floor(player.maxHealth * 0.34);
-            player.takeDamage(damageAmount);
-            
+            player._lastContactEnemyType = this.constructor.name;
+            player.takeDamage(damageAmount, 'contact');
+
             // Remove the declined calendar invite after collision
             this.active = false;
-            
+
             return true;
         }
         return false;
@@ -253,6 +269,16 @@ class CriticalStakeholder extends Enemy {
         if (this.health <= this.maxHealth * 0.5 && this.phase === 1) {
             this.phase = 2;
             this.speed = 60;
+
+            // Pendo Track Event: boss_phase_changed
+            if (typeof pendo !== 'undefined') {
+                pendo.track('boss_phase_changed', {
+                    boss_health_remaining: this.health,
+                    player_health: player ? player.health : null,
+                    player_score: window.game ? window.game.score : null,
+                    time_in_boss_fight: window.game && window.game.startTime ? ((Date.now() - window.game.startTime) / 1000).toFixed(1) : 'unknown'
+                });
+            }
         }
         
         // Movement AI

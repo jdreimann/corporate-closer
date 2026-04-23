@@ -181,12 +181,21 @@ export class Player {
         this.callAmmo--;
     }
 
-    takeDamage(amount) {
+    takeDamage(amount, source) {
         this.health = Math.max(0, this.health - amount);
         this.damageFlash = 0.3;
         this.screenShake = 0.5;
-        
+
         if (this.health <= 0) {
+            // Pendo Track Event: player_killed_by_enemy_contact
+            if (source === 'contact' && typeof pendo !== 'undefined') {
+                pendo.track('player_killed_by_enemy_contact', {
+                    enemy_type: this._lastContactEnemyType || 'unknown',
+                    damage_amount: amount,
+                    player_x_position: Math.round(this.x),
+                    player_score: window.game ? window.game.score : null
+                });
+            }
             window.game.gameOver(false);
         }
     }

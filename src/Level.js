@@ -162,7 +162,10 @@ class Level {
                 
                 console.log('Collectible collision detected:', collectible.type, collectible.value);
                 collectible.collected = true;
-                
+
+                const healthBefore = player.health;
+                const callAmmoBefore = player.callAmmo;
+
                 switch (collectible.type) {
                     case 'health':
                         // Increase health by 50% up to 100% max
@@ -182,6 +185,23 @@ class Level {
                         window.game.addScore(collectible.value);
                         break;
                 }
+
+                // Pendo Track Event: collectible_picked_up
+                if (typeof pendo !== 'undefined') {
+                    pendo.track('collectible_picked_up', {
+                        collectible_type: collectible.type,
+                        collectible_value: collectible.value,
+                        collectible_x_position: Math.round(collectible.x),
+                        player_health_before: healthBefore,
+                        player_health_after: player.health,
+                        player_call_ammo_before: callAmmoBefore,
+                        player_call_ammo_after: player.callAmmo,
+                        player_score: window.game ? window.game.score : null
+                    });
+                }
+                if (window.game) {
+                    window.game.collectiblesGathered++;
+                }
             }
         }
     }
@@ -194,6 +214,16 @@ class Level {
         if (this.calendarGenerationActive && cameraX > this.eightPMPosition - canvasWidth) {
             this.calendarGenerationActive = false;
             console.log('Calendar generation stopped - 8PM marker in view');
+
+            // Pendo Track Event: calendar_generation_stopped
+            if (typeof pendo !== 'undefined' && window.game) {
+                pendo.track('calendar_generation_stopped', {
+                    player_health: window.game.player.health,
+                    player_score: window.game.score,
+                    total_calendars_spawned: this.enemies.filter(e => e instanceof MeetingDecline).length,
+                    time_elapsed: ((Date.now() - window.game.startTime) / 1000).toFixed(1)
+                });
+            }
         }
         
         // Generate new calendar enemies at random intervals

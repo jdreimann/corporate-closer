@@ -20,6 +20,12 @@ export class Game {
         this.score = 0;
         this.gameState = 'playing'; // 'playing', 'gameOver', 'victory'
         this.bossFirstSeen = false;
+        this.startTime = Date.now();
+        this.restartCount = 0;
+        this.previousOutcome = null;
+        this.previousScore = 0;
+        this.enemiesDefeatedCount = 0;
+        this.collectiblesGathered = 0;
         
         this.setupUI();
         this.start();
@@ -114,6 +120,17 @@ export class Game {
                         setTimeout(() => {
                             this.audioManager.resetAmbientTrack();
                         }, 3000); // Wait 3 seconds after boss defeat
+
+                        // Pendo Track Event: boss_defeated
+                        if (typeof pendo !== 'undefined') {
+                            pendo.track('boss_defeated', {
+                                player_health_remaining: this.player.health,
+                                score_at_defeat: this.score,
+                                boss_score_value: enemy.scoreValue,
+                                boss_phase_at_defeat: enemy.phase,
+                                time_in_boss_fight: this.bossFirstSeen ? ((Date.now() - this.startTime) / 1000).toFixed(1) : 'unknown'
+                            });
+                        }
                     }
                     
                     break;
@@ -134,11 +151,28 @@ export class Game {
         if (this.player.x > this.level.width - 100) {
             // Check if boss was defeated for additional bonus
             const boss = this.level.enemies.find(e => e instanceof CriticalStakeholder);
-            if (boss && !boss.active) {
+            const bossDefeated = boss && !boss.active;
+            if (bossDefeated) {
                 // Boss was defeated - add massive bonus
                 this.addScore(1000000); // Additional 1 million bonus for defeating boss
                 console.log('Boss defeated bonus: +1,000,000');
             }
+
+            // Pendo Track Event: game_over_victory
+            if (typeof pendo !== 'undefined') {
+                pendo.track('game_over_victory', {
+                    final_score: this.score,
+                    boss_defeated: !!bossDefeated,
+                    boss_defeat_bonus: bossDefeated ? 1000000 : 0,
+                    enemies_defeated_count: this.enemiesDefeatedCount,
+                    collectibles_gathered: this.collectiblesGathered,
+                    health_remaining: this.player.health,
+                    time_played: ((Date.now() - this.startTime) / 1000).toFixed(1),
+                    email_ammo_remaining: this.player.emailAmmo,
+                    call_ammo_remaining: this.player.callAmmo
+                });
+            }
+
             this.gameOver(true);
         }
     }
@@ -163,7 +197,9 @@ export class Game {
 
     gameOver(victory) {
         this.gameState = 'gameOver';
-        
+        this.previousOutcome = victory ? 'victory' : 'defeat';
+        this.previousScore = this.score;
+
         if (victory) {
             this.gameOverTitle.textContent = 'Deal Closed!';
             this.gameOverMessage.textContent = 'Congratulations! You\'ve successfully navigated the corporate maze and closed the deal. Your sales skills are unmatched!';
@@ -172,6 +208,21 @@ export class Game {
             this.gameOverTitle.textContent = 'Deal Lost';
             this.gameOverMessage.textContent = 'The corporate world got the better of you this time. Don\'t give up - every great salesperson faces rejection!';
             this.audioManager.playSound('gameOver');
+
+            // Pendo Track Event: game_over_defeat
+            if (typeof pendo !== 'undefined') {
+                const boss = this.level.enemies.find(e => e instanceof CriticalStakeholder);
+                pendo.track('game_over_defeat', {
+                    final_score: this.score,
+                    player_x_position: Math.round(this.player.x),
+                    health_at_death: 0,
+                    enemies_defeated_count: this.enemiesDefeatedCount,
+                    collectibles_gathered: this.collectiblesGathered,
+                    time_played: ((Date.now() - this.startTime) / 1000).toFixed(1),
+                    boss_was_activated: boss ? boss.isActivated : false,
+                    boss_health_remaining: boss ? boss.health : null
+                });
+            }
         }
         
         this.finalScore.textContent = `$${this.score.toLocaleString()}`;
@@ -179,10 +230,23 @@ export class Game {
     }
 
     restart() {
+        // Pendo Track Event: game_restarted
+        if (typeof pendo !== 'undefined') {
+            pendo.track('game_restarted', {
+                previous_outcome: this.previousOutcome,
+                previous_score: this.previousScore,
+                restart_count: this.restartCount + 1
+            });
+        }
+
         // Reset game state
+        this.restartCount++;
         this.gameState = 'playing';
         this.score = 0;
         this.bossFirstSeen = false;
+        this.startTime = Date.now();
+        this.enemiesDefeatedCount = 0;
+        this.collectiblesGathered = 0;
         
         // Reset player
         this.player = new Player(100, 400);
@@ -245,6 +309,17 @@ export class Game {
                 this.bossFirstSeen = true;
                 // Trigger dramatic audio transition
                 this.audioManager.transitionToDramaticMode();
+
+                // Pendo Track Event: boss_encounter_started
+                if (typeof pendo !== 'undefined') {
+                    pendo.track('boss_encounter_started', {
+                        player_health: this.player.health,
+                        player_score: this.score,
+                        player_email_ammo: this.player.emailAmmo,
+                        player_call_ammo: this.player.callAmmo,
+                        time_elapsed: ((Date.now() - this.startTime) / 1000).toFixed(1)
+                    });
+                }
             }
             
             // Only show health bar if boss has been seen
@@ -310,5 +385,16 @@ document.addEventListener('DOMContentLoaded', () => {
         splashScreen.classList.add('hidden');
         gameContainer.classList.remove('hidden');
         window.game = new Game();
+
+        // Pendo Track Event: game_started
+        if (typeof pendo !== 'undefined') {
+            pendo.track('game_started', {
+                timestamp: new Date().toISOString(),
+                session_id: window.game.startTime.toString(),
+                user_agent: navigator.userAgent,
+                screen_width: window.screen.width,
+                screen_height: window.screen.height
+            });
+        }
     });
 });
