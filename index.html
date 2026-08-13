@@ -1,133 +1,198 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Corporate Closer</title>
-    <link rel="icon" type="image/png" href="favicon.png">
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <link rel="stylesheet" href="styles.css" />
+    <script>
+      (function (apiKey) {
+        (function (p, e, n, d, o) {
+          var v, w, x, y, z;
+          o = p[d] = p[d] || {};
+          o._q = o._q || [];
+          v = [
+            "initialize",
+            "identify",
+            "updateOptions",
+            "pageLoad",
+            "track",
+            "trackAgent",
+          ];
+          for (w = 0, x = v.length; w < x; ++w)
+            (function (m) {
+              o[m] =
+                o[m] ||
+                function () {
+                  o._q[m === v[0] ? "unshift" : "push"](
+                    [m].concat([].slice.call(arguments, 0)),
+                  );
+                };
+            })(v[w]);
+          y = e.createElement(n);
+          y.async = !0;
+          y.src =
+            "https://cdn.pendo-dev.pendo-dev.com/agent/static/" +
+            apiKey +
+            "/pendo.js";
+          z = e.getElementsByTagName(n)[0];
+          z.parentNode.insertBefore(y, z);
+        })(window, document, "script", "pendo");
+      })("e3a158f7-1535-49cf-86cb-4e617bc044de");
+    </script>
+    <script>
+      pendo.initialize({
+        visitor: {
+          id: "",
+        },
+      });
+    </script>
+  </head>
+  <body>
     <div id="splashScreen" class="splash-screen">
-        <div class="splash-content">
-            <h1 class="splash-title">Corporate Closer</h1>
-            <p class="splash-subtitle">Navigate the corporate maze and close the deal!</p>
-            <div class="splash-banner">
-                <img src="assets/images/splash-banner.png" alt="Corporate Closer - Battle on the Rooftops" class="splash-image">
-            </div>
-            <div class="character-intro">
-                <div class="player-section">                    
-                    <h3>You - The Closer 👔</h3>
-                    <p>Navigate platforms, dodge obstacles, and close deals with your email and phone skills.</p>
-                    
-                    <h3>Your Weapons</h3>
-                    <ul class="weapon-list">
-                        <li>📧 Email Shot - Fast, regenerating ammo</li>
-                        <li>📞 Phone Call - Powerful but limited</li>
-                    </ul>
-                    
-                    <h3>Controls</h3>
-                    <div class="controls-grid">
-                        <div class="control">
-                            <span class="key">A/D or ←/→</span>
-                            <span class="action">Move</span>
-                        </div>
-                        <div class="control">
-                            <span class="key">W or ↑</span>
-                            <span class="action">Jump (Double)</span>
-                        </div>
-                        <div class="control">
-                            <span class="key">Space</span>
-                            <span class="action">Email</span>
-                        </div>
-                        <div class="control">
-                            <span class="key">Shift</span>
-                            <span class="action">Call</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="enemy-section">
-                    <h2 style="margin-top: 0;">Obstacles</h2>
-                    <ul class="character-list">
-                        <li>📅 Declined Meetings - Floating calendar invites that reduce your health when touched</li>
-                        <li>📊 Finance Reviews - Ground-based enemies that shoot rejection notices</li>
-                        <li>👑 Critical Stakeholder - Final boss that appears later in the day - defeat to close the deal!</li>
-                    </ul>
-                    
-                    <h3>Goals</h3>
-                    <ul class="goals-list">
-                        <li>🏢 Work through the (business) day</li>
-                        <li>💪 Survive corporate obstacles and enemies</li>
-                        <li>🎯 Handle the Critical Stakeholder</li>
-                        <li>📝 Close the deal before the day is over</li>
-                    </ul>
-                </div>
-            </div>
-            
-            <button id="startGameBtn" class="start-button">Start Your Workday</button>
+      <div class="splash-content">
+        <h1 class="splash-title">Corporate Closer</h1>
+        <p class="splash-subtitle">
+          Navigate the corporate maze and close the deal!
+        </p>
+        <div class="splash-banner">
+          <img
+            src="assets/images/splash-banner.png"
+            alt="Corporate Closer - Battle on the Rooftops"
+            class="splash-image"
+          />
         </div>
+        <div class="character-intro">
+          <div class="player-section">
+            <h3>You - The Closer 👔</h3>
+            <p>
+              Navigate platforms, dodge obstacles, and close deals with your
+              email and phone skills.
+            </p>
+
+            <h3>Your Weapons</h3>
+            <ul class="weapon-list">
+              <li>📧 Email Shot - Fast, regenerating ammo</li>
+              <li>📞 Phone Call - Powerful but limited</li>
+            </ul>
+
+            <h3>Controls</h3>
+            <div class="controls-grid">
+              <div class="control">
+                <span class="key">A/D or ←/→</span>
+                <span class="action">Move</span>
+              </div>
+              <div class="control">
+                <span class="key">W or ↑</span>
+                <span class="action">Jump (Double)</span>
+              </div>
+              <div class="control">
+                <span class="key">Space</span>
+                <span class="action">Email</span>
+              </div>
+              <div class="control">
+                <span class="key">Shift</span>
+                <span class="action">Call</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="enemy-section">
+            <h2 style="margin-top: 0">Obstacles</h2>
+            <ul class="character-list">
+              <li>
+                📅 Declined Meetings - Floating calendar invites that reduce
+                your health when touched
+              </li>
+              <li>
+                📊 Finance Reviews - Ground-based enemies that shoot rejection
+                notices
+              </li>
+              <li>
+                👑 Critical Stakeholder - Final boss that appears later in the
+                day - defeat to close the deal!
+              </li>
+            </ul>
+
+            <h3>Goals</h3>
+            <ul class="goals-list">
+              <li>🏢 Work through the (business) day</li>
+              <li>💪 Survive corporate obstacles and enemies</li>
+              <li>🎯 Handle the Critical Stakeholder</li>
+              <li>📝 Close the deal before the day is over</li>
+            </ul>
+          </div>
+        </div>
+
+        <button id="startGameBtn" class="start-button">
+          Start Your Workday
+        </button>
+      </div>
     </div>
 
     <div class="game-container hidden" id="gameContainer">
-        <div class="game-header">
-            <h1>Corporate Closer</h1>
-            <div class="game-stats">
-                <div class="stat">
-                    <span class="label">Health:</span>
-                    <div class="health-bar">
-                        <div class="health-fill" id="healthBar"></div>
-                    </div>
-                </div>
-                <div class="stat">
-                    <span class="label">Score:</span>
-                    <span id="score">0</span>
-                </div>
-                <div class="stat">
-                    <span class="label">Emails:</span>
-                    <span id="emailAmmo">∞</span>
-                </div>
-                <div class="stat">
-                    <span class="label">Calls:</span>
-                    <span id="callAmmo">10</span>
-                </div>
+      <div class="game-header">
+        <h1>Corporate Closer</h1>
+        <div class="game-stats">
+          <div class="stat">
+            <span class="label">Health:</span>
+            <div class="health-bar">
+              <div class="health-fill" id="healthBar"></div>
             </div>
+          </div>
+          <div class="stat">
+            <span class="label">Score:</span>
+            <span id="score">0</span>
+          </div>
+          <div class="stat">
+            <span class="label">Emails:</span>
+            <span id="emailAmmo">∞</span>
+          </div>
+          <div class="stat">
+            <span class="label">Calls:</span>
+            <span id="callAmmo">10</span>
+          </div>
         </div>
-        
-        <canvas id="gameCanvas" width="1200" height="600"></canvas>
-        
-        <div class="controls-info">
-            <div class="control-group">
-                <h3>Controls</h3>
-                <div class="controls-grid">
-                    <div class="control">
-                        <span class="key">A/D or ←/→</span>
-                        <span class="action">Move</span>
-                    </div>
-                    <div class="control">
-                        <span class="key">W or ↑</span>
-                        <span class="action">Jump</span>
-                    </div>
-                    <div class="control">
-                        <span class="key">Space</span>
-                        <span class="action">Email Shot</span>
-                    </div>
-                    <div class="control">
-                        <span class="key">Shift</span>
-                        <span class="action">Phone Call</span>
-                    </div>
-                </div>
+      </div>
+
+      <canvas id="gameCanvas" width="1200" height="600"></canvas>
+
+      <div class="controls-info">
+        <div class="control-group">
+          <h3>Controls</h3>
+          <div class="controls-grid">
+            <div class="control">
+              <span class="key">A/D or ←/→</span>
+              <span class="action">Move</span>
             </div>
-        </div>
-        
-        <div id="gameOverScreen" class="game-over hidden">
-            <div class="game-over-content">
-                <h2 id="gameOverTitle">Deal Closed!</h2>
-                <p id="gameOverMessage">Congratulations! You've successfully navigated the corporate sales process.</p>
-                <p>Final Score: <span id="finalScore">0</span></p>
-                <button onclick="game.restart()">Start New Quarter</button>
+            <div class="control">
+              <span class="key">W or ↑</span>
+              <span class="action">Jump</span>
             </div>
+            <div class="control">
+              <span class="key">Space</span>
+              <span class="action">Email Shot</span>
+            </div>
+            <div class="control">
+              <span class="key">Shift</span>
+              <span class="action">Phone Call</span>
+            </div>
+          </div>
         </div>
+      </div>
+
+      <div id="gameOverScreen" class="game-over hidden">
+        <div class="game-over-content">
+          <h2 id="gameOverTitle">Deal Closed!</h2>
+          <p id="gameOverMessage">
+            Congratulations! You've successfully navigated the corporate sales
+            process.
+          </p>
+          <p>Final Score: <span id="finalScore">0</span></p>
+          <button onclick="game.restart()">Start New Quarter</button>
+        </div>
+      </div>
     </div>
 
     <script src="src/GameEngine.js" type="module"></script>
@@ -137,5 +202,5 @@
     <script src="src/Level.js" type="module"></script>
     <script src="src/AudioManager.js" type="module"></script>
     <script src="src/Game.js" type="module"></script>
-</body>
+  </body>
 </html>
